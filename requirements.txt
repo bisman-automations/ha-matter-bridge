@@ -1,0 +1,2 @@
+# Test requirements (the integration has no runtime requirements)
+pytest-homeassistant-custom-component
