@@ -1,0 +1,134 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Matter Hub",
+        "description": "Home Assistant Matter Hub is installed as an app. Connect to it, or to a Matter Hub running somewhere else.",
+        "menu_options": {
+          "app": "Matter Hub app on this Home Assistant",
+          "direct": "Matter Hub at a URL (Docker or standalone)"
+        }
+      },
+      "app": {
+        "title": "Matter Hub app",
+        "description": "Requests go through the app's Home Assistant ingress, so no port needs to be opened. Fill in a username and password only if you turned on authentication in Matter Hub's settings.",
+        "data": {
+          "app_slug": "App",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "direct": {
+        "title": "Matter Hub URL",
+        "description": "Enter the address of the Matter Hub web interface (port 8482 by default). See {project_url} for installing Matter Hub.",
+        "data": {
+          "url": "URL",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Update Matter Hub connection",
+        "data": {
+          "url": "URL",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Matter Hub needs a password",
+        "description": "Matter Hub now asks for a username and password.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "app_not_running": "The Matter Hub app is not running. Start it and try again.",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Service is already configured",
+      "reauth_successful": "Re-authentication was successful",
+      "reconfigure_successful": "Re-configuration was successful",
+      "different_hub": "This URL points to a different Matter Hub. Add it as a new integration instead."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "home_assistant_connected": {
+        "name": "Home Assistant connection"
+      },
+      "commissioned": {
+        "name": "Commissioned"
+      }
+    },
+    "button": {
+      "restart_all": {
+        "name": "Restart all bridges"
+      },
+      "restart": {
+        "name": "Restart"
+      },
+      "refresh_devices": {
+        "name": "Refresh devices"
+      },
+      "force_sync": {
+        "name": "Force sync"
+      },
+      "open_commissioning_window": {
+        "name": "Open pairing window"
+      }
+    },
+    "sensor": {
+      "hub_status": {
+        "name": "Status",
+        "state": {
+          "healthy": "Healthy",
+          "degraded": "Degraded",
+          "unhealthy": "Unhealthy"
+        }
+      },
+      "running_bridges": {
+        "name": "Running bridges"
+      },
+      "uptime": {
+        "name": "Uptime"
+      },
+      "bridge_status": {
+        "name": "Status",
+        "state": {
+          "starting": "Starting",
+          "running": "Running",
+          "stopped": "Stopped",
+          "failed": "Failed"
+        }
+      },
+      "devices": {
+        "name": "Devices"
+      },
+      "fabrics": {
+        "name": "Controllers"
+      },
+      "failed_entities": {
+        "name": "Failed entities"
+      },
+      "pairing_code": {
+        "name": "Pairing code"
+      }
+    },
+    "switch": {
+      "running": {
+        "name": "Running"
+      }
+    }
+  },
+  "exceptions": {
+    "action_failed": {
+      "message": "Matter Hub could not do that: {error}"
+    }
+  }
+}
