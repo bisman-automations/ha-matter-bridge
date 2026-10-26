@@ -6,7 +6,12 @@ from datetime import timedelta
 from http import HTTPStatus
 
 import pytest
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
+from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
+from custom_components.matter_bridge.diagnostics import (
+    async_get_config_entry_diagnostics,
+)
 from homeassistant.auth.models import User
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
@@ -15,12 +20,14 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.util import dt as dt_util
 
-from pytest_homeassistant_custom_component.common import async_fire_time_changed
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
-
-from custom_components.matter_bridge.diagnostics import async_get_config_entry_diagnostics
-
-from .conftest import INGRESS, URL, app_entry, direct_entry, mock_direct, mock_supervisor
+from .conftest import (
+    INGRESS,
+    URL,
+    app_entry,
+    direct_entry,
+    mock_direct,
+    mock_supervisor,
+)
 
 
 def _device(hass, entry, identifier):
@@ -39,14 +46,21 @@ async def _setup_direct(hass, aioclient_mock, health, bridges):
 
 
 async def test_entities(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     entry = await _setup_direct(hass, aioclient_mock, health, bridges)
     assert entry.state is ConfigEntryState.LOADED
 
     assert hass.states.get("sensor.matter_hub_status").state == "healthy"
     assert hass.states.get("sensor.matter_hub_running_bridges").state == "1"
-    assert hass.states.get("binary_sensor.matter_hub_home_assistant_connection").state == STATE_ON
+    assert (
+        hass.states.get("binary_sensor.matter_hub_home_assistant_connection").state
+        == STATE_ON
+    )
 
     assert hass.states.get("sensor.living_room_status").state == "running"
     assert hass.states.get("sensor.living_room_devices").state == "12"
@@ -69,7 +83,11 @@ async def test_entities(
 
 
 async def test_button_and_switch_actions(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     await _setup_direct(hass, aioclient_mock, health, bridges)
     for action in ("restart", "force-sync", "stop", "start"):
@@ -80,13 +98,22 @@ async def test_button_and_switch_actions(
         "button", "press", {ATTR_ENTITY_ID: "button.living_room_restart"}, blocking=True
     )
     await hass.services.async_call(
-        "button", "press", {ATTR_ENTITY_ID: "button.living_room_force_sync"}, blocking=True
+        "button",
+        "press",
+        {ATTR_ENTITY_ID: "button.living_room_force_sync"},
+        blocking=True,
     )
     await hass.services.async_call(
-        "switch", "turn_off", {ATTR_ENTITY_ID: "switch.living_room_running"}, blocking=True
+        "switch",
+        "turn_off",
+        {ATTR_ENTITY_ID: "switch.living_room_running"},
+        blocking=True,
     )
     await hass.services.async_call(
-        "button", "press", {ATTR_ENTITY_ID: "button.matter_hub_restart_all_bridges"}, blocking=True
+        "button",
+        "press",
+        {ATTR_ENTITY_ID: "button.matter_hub_restart_all_bridges"},
+        blocking=True,
     )
     posted = [str(u) for m, u, *_ in aioclient_mock.mock_calls if m == "POST"]
     assert posted == [
@@ -98,7 +125,11 @@ async def test_button_and_switch_actions(
 
 
 async def test_action_error(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     await _setup_direct(hass, aioclient_mock, health, bridges)
     aioclient_mock.post(
@@ -116,7 +147,11 @@ async def test_action_error(
 
 
 async def test_bridges_added_and_removed(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     entry = await _setup_direct(hass, aioclient_mock, health, bridges)
 
@@ -172,13 +207,20 @@ async def test_app_entry_setup(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get("sensor.living_room_status").state == "running"
-    assert any(str(u) == f"{INGRESS}/api/matter/bridges" for _, u, *_ in aioclient_mock.mock_calls)
+    assert any(
+        str(u) == f"{INGRESS}/api/matter/bridges"
+        for _, u, *_ in aioclient_mock.mock_calls
+    )
     hub = _device(hass, entry, ("matter_bridge", entry.entry_id))
     assert hub.configuration_url == "homeassistant://hassio/ingress/3fd9e6b0_hamh"
 
 
 async def test_diagnostics_redacted(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     entry = await _setup_direct(hass, aioclient_mock, health, bridges)
     diag = await async_get_config_entry_diagnostics(hass, entry)
@@ -190,7 +232,11 @@ async def test_diagnostics_redacted(
 
 
 async def test_unload(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     entry = await _setup_direct(hass, aioclient_mock, health, bridges)
     assert await hass.config_entries.async_unload(entry.entry_id)

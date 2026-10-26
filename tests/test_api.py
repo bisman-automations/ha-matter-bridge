@@ -5,11 +5,6 @@ from __future__ import annotations
 from http import HTTPStatus
 
 import pytest
-
-from homeassistant.auth.models import User
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.matter_bridge.api import (
@@ -23,6 +18,9 @@ from custom_components.matter_bridge.api import (
     async_find_apps,
     is_matter_hub_app,
 )
+from homeassistant.auth.models import User
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .conftest import INGRESS, SLUG, SUPERVISOR, URL, mock_supervisor
 
@@ -33,7 +31,13 @@ from .conftest import INGRESS, SLUG, SUPERVISOR, URL, mock_supervisor
         ({"slug": "3fd9e6b0_hamh"}, True),
         ({"slug": "3fd9e6b0_hamh-alpha"}, True),
         ({"slug": "local_hamh_testing"}, True),
-        ({"slug": "abcd_other", "url": "https://github.com/riddix/home-assistant-matter-hub"}, True),
+        (
+            {
+                "slug": "abcd_other",
+                "url": "https://github.com/riddix/home-assistant-matter-hub",
+            },
+            True,
+        ),
         ({"slug": "core_matter_server"}, False),
         ({"slug": "abcd_hamhx"}, False),
     ],
@@ -43,7 +47,11 @@ def test_is_matter_hub_app(app, expected) -> None:
 
 
 async def test_find_apps(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, supervisor_env, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    supervisor_env,
+    health,
+    bridges,
 ) -> None:
     mock_supervisor(aioclient_mock, health, bridges)
     apps = await async_find_apps(hass)
@@ -97,7 +105,9 @@ async def test_supervisor_renews_expired_session(
     aioclient_mock.clear_requests()
     mock_supervisor(aioclient_mock, health, bridges)
     aioclient_mock._mocks = [  # noqa: SLF001 - make the ingress call answer 401
-        m for m in aioclient_mock._mocks if not str(m._url).endswith("/api/health")  # noqa: SLF001
+        m
+        for m in aioclient_mock._mocks
+        if not str(m._url).endswith("/api/health")  # noqa: SLF001
     ]
     aioclient_mock.get(f"{INGRESS}/api/health", status=HTTPStatus.UNAUTHORIZED)
     with pytest.raises(MatterHubAppError):
@@ -121,7 +131,9 @@ async def test_supervisor_app_stopped(
     bridges,
 ) -> None:
     mock_supervisor(aioclient_mock, health, bridges, state="stopped")
-    client = MatterHubClient(SupervisorTransport(hass, async_get_clientsession(hass), SLUG))
+    client = MatterHubClient(
+        SupervisorTransport(hass, async_get_clientsession(hass), SLUG)
+    )
     with pytest.raises(MatterHubAppError, match="stopped"):
         await client.async_get_health()
 
@@ -130,12 +142,16 @@ async def test_direct_unhealthy_503_returns_body(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, health
 ) -> None:
     health["status"] = "unhealthy"
-    aioclient_mock.get(f"{URL}/api/health", json=health, status=HTTPStatus.SERVICE_UNAVAILABLE)
+    aioclient_mock.get(
+        f"{URL}/api/health", json=health, status=HTTPStatus.SERVICE_UNAVAILABLE
+    )
     client = MatterHubClient(DirectTransport(async_get_clientsession(hass), URL))
     assert (await client.async_get_health())["status"] == "unhealthy"
 
 
-async def test_direct_basic_auth(hass: HomeAssistant, aioclient_mock: AiohttpClientMocker) -> None:
+async def test_direct_basic_auth(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     aioclient_mock.get(
         f"{URL}/api/health",
         status=HTTPStatus.UNAUTHORIZED,
@@ -150,7 +166,9 @@ async def test_direct_basic_auth(hass: HomeAssistant, aioclient_mock: AiohttpCli
     assert aioclient_mock.mock_calls[0][3]["Authorization"] == "Basic YWRtaW46d3Jvbmc="
 
 
-async def test_direct_command_error(hass: HomeAssistant, aioclient_mock: AiohttpClientMocker) -> None:
+async def test_direct_command_error(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     aioclient_mock.post(
         f"{URL}/api/matter/bridges/b1/actions/open-commissioning-window",
         status=HTTPStatus.BAD_REQUEST,
@@ -161,7 +179,9 @@ async def test_direct_command_error(hass: HomeAssistant, aioclient_mock: Aiohttp
         await client.async_bridge_action("b1", "open-commissioning-window")
 
 
-async def test_direct_unreachable(hass: HomeAssistant, aioclient_mock: AiohttpClientMocker) -> None:
+async def test_direct_unreachable(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     aioclient_mock.get(f"{URL}/api/health", exc=TimeoutError)
     client = MatterHubClient(DirectTransport(async_get_clientsession(hass), URL))
     with pytest.raises(MatterHubConnectionError):

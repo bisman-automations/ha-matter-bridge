@@ -142,7 +142,11 @@ class Transport(ABC):
 
     @abstractmethod
     async def request(
-        self, method: str, path: str, json: Any = None, ok_statuses: tuple[int, ...] = ()
+        self,
+        method: str,
+        path: str,
+        json: Any = None,
+        ok_statuses: tuple[int, ...] = (),
     ) -> Any:
         """Send a request to ``/api/...`` and return the decoded body."""
 
@@ -157,7 +161,10 @@ class Transport(ABC):
         try:
             async with asyncio.timeout(REQUEST_TIMEOUT):
                 resp = await self._session.request(
-                    method, url, headers={**(headers or {}), **self._auth_header}, json=json
+                    method,
+                    url,
+                    headers={**(headers or {}), **self._auth_header},
+                    json=json,
                 )
                 text = await resp.text()
         except (TimeoutError, aiohttp.ClientError) as err:
@@ -172,7 +179,10 @@ class Transport(ABC):
 
     @staticmethod
     def _raise_for(status: int, body: Any, resp: aiohttp.ClientResponse) -> None:
-        if status == 401 and "basic" in resp.headers.get("WWW-Authenticate", "").lower():
+        if (
+            status == 401
+            and "basic" in resp.headers.get("WWW-Authenticate", "").lower()
+        ):
             raise MatterHubAuthError("Matter Hub rejected the username or password")
         if status == 403:
             raise MatterHubAuthError("Matter Hub refused access (IP allow list)")
@@ -198,7 +208,11 @@ class DirectTransport(Transport):
         self._base = url.rstrip("/")
 
     async def request(
-        self, method: str, path: str, json: Any = None, ok_statuses: tuple[int, ...] = ()
+        self,
+        method: str,
+        path: str,
+        json: Any = None,
+        ok_statuses: tuple[int, ...] = (),
     ) -> Any:
         status, body, resp = await self._send(
             method, f"{self._base}{path}", headers=None, json=json
@@ -269,7 +283,11 @@ class SupervisorTransport(Transport):
         raise MatterHubAppError("No active administrator to open an ingress session")
 
     async def request(
-        self, method: str, path: str, json: Any = None, ok_statuses: tuple[int, ...] = ()
+        self,
+        method: str,
+        path: str,
+        json: Any = None,
+        ok_statuses: tuple[int, ...] = (),
     ) -> Any:
         for attempt in range(2):
             token, ingress_session = await self._ensure_ingress(renew=attempt > 0)

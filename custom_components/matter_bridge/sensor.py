@@ -77,7 +77,10 @@ BRIDGE_SENSORS: tuple[BridgeSensorDescription, ...] = (
         device_class=SensorDeviceClass.ENUM,
         options=BRIDGE_STATUSES,
         value_fn=lambda b: b.get("status"),
-        attrs_fn=lambda b: {"status_reason": b.get("statusReason"), "port": b.get("port")},
+        attrs_fn=lambda b: {
+            "status_reason": b.get("statusReason"),
+            "port": b.get("port"),
+        },
     ),
     BridgeSensorDescription(
         key="devices",
@@ -105,7 +108,8 @@ BRIDGE_SENSORS: tuple[BridgeSensorDescription, ...] = (
         value_fn=lambda b: len(b.get("failedEntities") or []),
         attrs_fn=lambda b: {
             "entities": {
-                f.get("entityId"): f.get("reason") for f in b.get("failedEntities") or []
+                f.get("entityId"): f.get("reason")
+                for f in b.get("failedEntities") or []
             }
         },
     ),

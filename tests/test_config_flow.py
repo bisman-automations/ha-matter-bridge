@@ -6,13 +6,6 @@ from http import HTTPStatus
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
-from homeassistant import config_entries
-from homeassistant.auth.models import User
-from homeassistant.const import CONF_PASSWORD, CONF_URL, CONF_USERNAME
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
-
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.matter_bridge.const import (
@@ -22,6 +15,11 @@ from custom_components.matter_bridge.const import (
     CONNECTION_DIRECT,
     DOMAIN,
 )
+from homeassistant import config_entries
+from homeassistant.auth.models import User
+from homeassistant.const import CONF_PASSWORD, CONF_URL, CONF_USERNAME
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 
 from .conftest import SLUG, URL, direct_entry, mock_direct, mock_supervisor
 
@@ -29,13 +27,18 @@ from .conftest import SLUG, URL, direct_entry, mock_direct, mock_supervisor
 @pytest.fixture(autouse=True)
 def no_setup():
     with patch(
-        "custom_components.matter_bridge.async_setup_entry", AsyncMock(return_value=True)
+        "custom_components.matter_bridge.async_setup_entry",
+        AsyncMock(return_value=True),
     ):
         yield
 
 
 async def test_direct_flow(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     mock_direct(aioclient_mock, health, bridges)
     result = await hass.config_entries.flow.async_init(
@@ -79,7 +82,9 @@ async def test_direct_flow_errors(
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_URL: URL})
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_URL: URL}
+    )
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": error}
 
@@ -99,7 +104,9 @@ async def test_direct_already_configured(
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_URL: URL})
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_URL: URL}
+    )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
 
@@ -166,7 +173,11 @@ async def test_supervisor_without_app_goes_direct(
 
 
 async def test_reauth(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     entry = direct_entry()
     entry.add_to_hass(hass)
@@ -186,7 +197,11 @@ async def test_reauth(
 
 
 async def test_reconfigure(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor, health, bridges
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
 ) -> None:
     entry = direct_entry()
     entry.add_to_hass(hass)

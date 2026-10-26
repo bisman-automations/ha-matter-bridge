@@ -47,7 +47,9 @@ CREDENTIALS = {
         TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="username")
     ),
     vol.Optional(CONF_PASSWORD): TextSelector(
-        TextSelectorConfig(type=TextSelectorType.PASSWORD, autocomplete="current-password")
+        TextSelectorConfig(
+            type=TextSelectorType.PASSWORD, autocomplete="current-password"
+        )
     ),
 }
 
@@ -72,7 +74,9 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         self._apps: list[MatterHubApp] = []
 
-    async def _async_validate(self, data: dict[str, Any]) -> tuple[dict[str, str], str | None]:
+    async def _async_validate(
+        self, data: dict[str, Any]
+    ) -> tuple[dict[str, str], str | None]:
         """Try the connection; return form errors and Matter Hub's version."""
         client = MatterHubClient(create_transport(self.hass, data))
         try:
@@ -89,7 +93,9 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
             return {"base": "unknown"}, None
         return {}, health.get("version")
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Offer the installed app when there is one, otherwise ask for a URL."""
         if supervisor_available():
             try:
@@ -101,7 +107,9 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_show_menu(step_id="user", menu_options=["app", "direct"])
         return await self.async_step_direct()
 
-    async def async_step_app(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+    async def async_step_app(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Connect to the Matter Hub app through Supervisor ingress."""
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -117,7 +125,8 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
                 )
 
         options = [
-            SelectOptionDict(value=a.slug, label=f"{a.name} ({a.state})") for a in self._apps
+            SelectOptionDict(value=a.slug, label=f"{a.name} ({a.state})")
+            for a in self._apps
         ]
         schema = vol.Schema(
             {
@@ -193,12 +202,16 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(
-                schema, user_input or {k: v for k, v in entry.data.items() if k != CONF_PASSWORD}
+                schema,
+                user_input
+                or {k: v for k, v in entry.data.items() if k != CONF_PASSWORD},
             ),
             errors=errors,
         )
 
-    async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> ConfigFlowResult:
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> ConfigFlowResult:
         """Matter Hub started asking for a password."""
         return await self.async_step_reauth_confirm()
 
@@ -216,7 +229,9 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
         schema = vol.Schema(
             {
                 vol.Required(CONF_USERNAME): TextSelector(
-                    TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="username")
+                    TextSelectorConfig(
+                        type=TextSelectorType.TEXT, autocomplete="username"
+                    )
                 ),
                 vol.Required(CONF_PASSWORD): TextSelector(
                     TextSelectorConfig(

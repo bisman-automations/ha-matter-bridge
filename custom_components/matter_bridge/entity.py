@@ -28,7 +28,9 @@ def hub_identifier(entry: MatterBridgeConfigEntry) -> tuple[str, str]:
     return (DOMAIN, entry.entry_id)
 
 
-def bridge_identifier(entry: MatterBridgeConfigEntry, bridge_id: str) -> tuple[str, str]:
+def bridge_identifier(
+    entry: MatterBridgeConfigEntry, bridge_id: str
+) -> tuple[str, str]:
     """Device registry identifier of a bridge device."""
     return (DOMAIN, f"{entry.entry_id}_{bridge_id}")
 
@@ -69,7 +71,9 @@ class MatterHubEntity(CoordinatorEntity[MatterHubCoordinator]):
             identifiers={hub_identifier(entry)},
             name="Matter Hub",
             manufacturer=MATTER_HUB_NAME,
-            model="App" if entry.data.get(CONF_CONNECTION) == CONNECTION_APP else "Standalone",
+            model="App"
+            if entry.data.get(CONF_CONNECTION) == CONNECTION_APP
+            else "Standalone",
             sw_version=health.get("version"),
             configuration_url=configuration_url(entry),
         )

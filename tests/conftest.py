@@ -6,9 +6,6 @@ import copy
 from typing import Any
 
 import pytest
-
-from homeassistant.const import CONF_URL
-
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
@@ -19,6 +16,7 @@ from custom_components.matter_bridge.const import (
     CONNECTION_DIRECT,
     DOMAIN,
 )
+from homeassistant.const import CONF_URL
 
 URL = "http://192.0.2.20:8482"
 SUPERVISOR = "http://supervisor"
@@ -126,8 +124,17 @@ def mock_supervisor(
             "result": "ok",
             "data": {
                 "addons": [
-                    {"slug": "core_mosquitto", "name": "Mosquitto broker", "state": "started"},
-                    {"slug": SLUG, "name": "Home-Assistant-Matter-Hub", "state": state, "version": "2.0.59"},
+                    {
+                        "slug": "core_mosquitto",
+                        "name": "Mosquitto broker",
+                        "state": "started",
+                    },
+                    {
+                        "slug": SLUG,
+                        "name": "Home-Assistant-Matter-Hub",
+                        "state": state,
+                        "version": "2.0.59",
+                    },
                 ]
             },
         },
@@ -136,11 +143,15 @@ def mock_supervisor(
         f"{SUPERVISOR}/addons/{SLUG}/info",
         json={
             "result": "ok",
-            "data": {"state": state, "ingress_entry": f"/api/hassio_ingress/{INGRESS_TOKEN}"},
+            "data": {
+                "state": state,
+                "ingress_entry": f"/api/hassio_ingress/{INGRESS_TOKEN}",
+            },
         },
     )
     aioclient_mock.post(
-        f"{SUPERVISOR}/ingress/session", json={"result": "ok", "data": {"session": "sess1"}}
+        f"{SUPERVISOR}/ingress/session",
+        json={"result": "ok", "data": {"session": "sess1"}},
     )
     aioclient_mock.get(f"{INGRESS}/api/health", json=health)
     aioclient_mock.get(f"{INGRESS}/api/matter/bridges", json=bridges)

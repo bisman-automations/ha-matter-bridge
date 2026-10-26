@@ -85,7 +85,9 @@ class HubButton(MatterHubEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         await run_action(
-            self.coordinator.client.async_all_bridges_action(self.entity_description.action)
+            self.coordinator.client.async_all_bridges_action(
+                self.entity_description.action
+            )
         )
         await self.coordinator.async_request_refresh()
 

@@ -26,11 +26,15 @@ def create_transport(hass: HomeAssistant, data: dict) -> Transport:
     username = data.get(CONF_USERNAME) or None
     password = data.get(CONF_PASSWORD) or None
     if data.get(CONF_CONNECTION) == CONNECTION_APP:
-        return SupervisorTransport(hass, session, data[CONF_APP_SLUG], username, password)
+        return SupervisorTransport(
+            hass, session, data[CONF_APP_SLUG], username, password
+        )
     return DirectTransport(session, data[CONF_URL], username, password)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: MatterBridgeConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: MatterBridgeConfigEntry
+) -> bool:
     """Set up Matter Bridge from a config entry."""
     client = MatterHubClient(create_transport(hass, dict(entry.data)))
     coordinator = MatterHubCoordinator(hass, entry, client)
@@ -48,14 +52,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: MatterBridgeConfigEntry)
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: MatterBridgeConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, entry: MatterBridgeConfigEntry
+) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 @callback
 def _remove_deleted_bridges(
-    hass: HomeAssistant, entry: MatterBridgeConfigEntry, coordinator: MatterHubCoordinator
+    hass: HomeAssistant,
+    entry: MatterBridgeConfigEntry,
+    coordinator: MatterHubCoordinator,
 ) -> None:
     """Drop devices for bridges that were deleted in Matter Hub."""
     if not coordinator.data or not coordinator.last_update_success:
@@ -66,7 +74,9 @@ def _remove_deleted_bridges(
     }
     for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
         if not device.identifiers & keep:
-            registry.async_update_device(device.id, remove_config_entry_id=entry.entry_id)
+            registry.async_update_device(
+                device.id, remove_config_entry_id=entry.entry_id
+            )
 
 
 async def async_remove_config_entry_device(

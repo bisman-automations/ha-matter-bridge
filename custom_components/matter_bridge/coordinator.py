@@ -33,7 +33,10 @@ class MatterHubCoordinator(DataUpdateCoordinator[MatterHubData]):
     config_entry: MatterBridgeConfigEntry
 
     def __init__(
-        self, hass: HomeAssistant, entry: MatterBridgeConfigEntry, client: MatterHubClient
+        self,
+        hass: HomeAssistant,
+        entry: MatterBridgeConfigEntry,
+        client: MatterHubClient,
     ) -> None:
         super().__init__(
             hass,
