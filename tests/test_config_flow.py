@@ -179,6 +179,10 @@ async def test_reauth(
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"
     assert entry.data[CONF_PASSWORD] == "secret"
+    # Reauth reloads the entry. Unload it so its poll timer doesn't outlive the
+    # test (older Home Assistant versions finish that reload after the flow).
+    await hass.async_block_till_done()
+    await hass.config_entries.async_unload(entry.entry_id)
 
 
 async def test_reconfigure(

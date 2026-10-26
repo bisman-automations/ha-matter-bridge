@@ -1,8 +1,12 @@
 {
   "domain": "matter_bridge",
   "name": "Matter Bridge",
-  "after_dependencies": ["hassio"],
-  "codeowners": ["@bisman-automations"],
+  "after_dependencies": [
+    "hassio"
+  ],
+  "codeowners": [
+    "@donavanbecker"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/bisman-automations/ha-matter-bridge",
   "integration_type": "hub",
