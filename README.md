@@ -1,23 +1,49 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/bisman-automations/ha-matter-bridge/main/custom_components/matter_bridge/brand/icon.png" alt="Matter Bridge icon" width="128">
+</p>
+
 # Matter Bridge
+
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.3%2B-blue.svg)](https://www.home-assistant.io/)
+[![GitHub Release](https://img.shields.io/github/v/release/bisman-automations/ha-matter-bridge)](https://github.com/bisman-automations/ha-matter-bridge/releases)
+[![Test](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/test.yml/badge.svg)](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/test.yml)
+[![Validate](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/validate.yml/badge.svg)](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/validate.yml)
+[![License](https://img.shields.io/github/license/bisman-automations/ha-matter-bridge)](LICENSE)
 
 Shows [Home Assistant Matter Hub](https://github.com/RiDDiX/home-assistant-matter-hub) as an integration under **Settings → Devices & services**, with a device for Matter Hub and one for each Matter bridge you created in it.
 
 Matter Hub does the Matter work: it publishes your Home Assistant entities to Apple Home, Google Home, Alexa and other Matter controllers. This integration lets you watch and control those bridges from Home Assistant, so you can see bridge status on dashboards, get alerted when a bridge fails, and restart or re-sync a bridge from an automation.
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=bisman-automations&repository=ha-matter-bridge&category=integration)
-
 ## Requirements
 
-* Home Assistant 2025.2 or newer
+* Home Assistant 2025.3 or newer
 * Home Assistant Matter Hub, either:
   * the **Matter Hub app** (add-on) on Home Assistant OS or Supervised, or
   * Matter Hub in Docker or standalone, reachable over the network (port 8482 by default)
 
 ## Installation
 
-1. In HACS, add `https://github.com/bisman-automations/ha-matter-bridge` as a custom repository (type **Integration**), or use the button above.
-2. Install **Matter Bridge** and restart Home Assistant.
-3. Go to **Settings → Devices & services → Add integration → Matter Bridge**.
+### HACS
+
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=bisman-automations&repository=ha-matter-bridge&category=integration)
+
+1. Click the button above, or in HACS open the menu, choose **Custom repositories**, and add `https://github.com/bisman-automations/ha-matter-bridge` as an **Integration**.
+2. Download **Matter Bridge** and restart Home Assistant.
+
+Requires **Home Assistant 2025.3 or newer**.
+
+### Manual
+
+Download `matter_bridge.zip` from the [latest release](https://github.com/bisman-automations/ha-matter-bridge/releases/latest), unzip it into `config/custom_components/matter_bridge/`, and restart Home Assistant.
+
+## Setup
+
+[![Open your Home Assistant instance and start setting up Matter Bridge.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=matter_bridge)
+
+Or go to **Settings → Devices & services → Add integration → Matter Bridge**.
+
+Setup finds the Matter Hub app on its own when it is installed; otherwise point it at a Matter Hub URL.
 
 ### Connecting to the Matter Hub app
 
@@ -87,14 +113,45 @@ Download diagnostics from the integration page. Pairing codes, passcodes, fabric
 * **Asked for a username and password after setup**: authentication was turned on in Matter Hub. Enter the same credentials in the repair prompt.
 * **Docker install not reachable**: make sure the address opens the Matter Hub UI in a browser on the same network as Home Assistant.
 
+### Diagnostics and debug logs
+
+When something goes wrong, download diagnostics from **Settings → Devices & services → Matter Bridge → ⋮ → Download diagnostics** and check the file before you share it.
+
+For debug logs, use **Enable debug logging** on the integration page, or add this to `configuration.yaml` and restart:
+
+```yaml
+logger:
+  logs:
+    custom_components.matter_bridge: debug
+```
+
+Then open an [issue](https://github.com/bisman-automations/ha-matter-bridge/issues/new/choose) with the diagnostics, the log, and your Home Assistant and Matter Bridge versions.
+
+Never post a bridge's pairing code or QR code in an issue: anyone with it can add the bridge to their own Matter controller.
+
 ## Development
 
+Tests run inside a real Home Assistant through
+[pytest-homeassistant-custom-component](https://github.com/MatthewFlamm/pytest-homeassistant-custom-component).
+You need Python 3.14 for the current Home Assistant.
+
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+python3.14 -m venv .venv && . .venv/bin/activate
+pip install -r requirements_test.txt
+ruff check . && ruff format --check .
 pytest
 ```
 
+To test against the oldest supported Home Assistant (2025.3), use Python 3.13 and
+`pip install -r requirements_test_min.txt` instead.
+
+CI runs the same checks on every push and pull request, on both Home Assistant
+versions, plus hassfest, HACS validation and the shared repo standards, using the
+workflows in [bisman-automations/.github](https://github.com/bisman-automations/.github).
+Releases are drafted from [CHANGELOG.md](CHANGELOG.md); see [CLAUDE.md](CLAUDE.md).
+
 ## License
 
-Apache 2.0. Not affiliated with the Home Assistant Matter Hub project.
+Apache-2.0. See [LICENSE](LICENSE).
+
+Not affiliated with the Home Assistant Matter Hub project.
