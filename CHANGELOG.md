@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-26
+
+### Changed
+
+- Requires Home Assistant 2025.3 or newer. 1.0.0 didn't load on 2025.2.
+- The README follows the same layout as the other bisman-automations integrations: a button that opens it in HACS, a button that starts setup, and troubleshooting steps for debug logs and diagnostics.
+
+### Fixed
+
+- LICENSE has the full Apache License 2.0 text, so GitHub and HACS recognize the license.
+- Diagnostics also redact the Matter Hub URL. This was added to main after v1.0.0 was tagged, so the published 1.0.0 doesn't include it.
+
 ## [1.0.0] - 2026-10-23
 
 ### Added
@@ -24,5 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Diagnostics with pairing codes, fabric IDs and credentials redacted.
   - Tests, Hassfest and HACS validation, and draft releases from CHANGELOG.md.
 
-[Unreleased]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/bisman-automations/ha-matter-bridge/releases/tag/v1.0.0
