@@ -80,6 +80,9 @@ async def test_entities(
     hub = _device(hass, entry, ("matter_bridge", entry.entry_id))
     assert bridge.via_device_id == hub.id
     assert hub.sw_version == "2.0.59"
+    # Matter Hub and its bridges are software, so they're services.
+    assert hub.entry_type is dr.DeviceEntryType.SERVICE
+    assert bridge.entry_type is dr.DeviceEntryType.SERVICE
 
 
 async def test_button_and_switch_actions(
@@ -323,3 +326,30 @@ async def test_app_unavailable_repair(
     assert issues.async_get_issue("matter_bridge", issue_id) is None
 
     await hass.config_entries.async_remove(entry.entry_id)
+
+
+async def test_devices_from_before_1_2_0_become_services(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
+) -> None:
+    """Devices registered as ordinary devices switch to services on setup."""
+    mock_direct(aioclient_mock, health, bridges)
+    entry = direct_entry()
+    entry.add_to_hass(hass)
+    registry = dr.async_get(hass)
+    old = registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={("matter_bridge", entry.entry_id)},
+        name="Matter Hub",
+    )
+    assert old.entry_type is None
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    hub = _device(hass, entry, ("matter_bridge", entry.entry_id))
+    assert hub.id == old.id
+    assert hub.entry_type is dr.DeviceEntryType.SERVICE
+    bridge = _device(hass, entry, ("matter_bridge", f"{entry.entry_id}_b1"))
+    assert bridge.entry_type is dr.DeviceEntryType.SERVICE

@@ -16,7 +16,7 @@ Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2026.8.0).
 | `api.py` | The Matter Hub REST client. Two transports: the Matter Hub **app** (add-on), reached through Supervisor ingress (`http://supervisor/ingress/<token>/...` with an ingress session Home Assistant creates), and a **direct** URL for Docker or standalone installs (default port 8482). |
 | `config_flow.py` | Setup picks the connection: `app` (lists installed apps whose slug is in `APP_SLUGS` or whose URL contains `APP_PROJECT_URL_MARKER`) or `direct` (URL, optional username and password). Reconfigure and reauth. |
 | `coordinator.py` | Polls health and the bridge list every 30 seconds (`DEFAULT_SCAN_INTERVAL`). |
-| `entity.py` | The Matter Hub device and one device per bridge. Unique IDs are `<entry_id>_<key>` and `<entry_id>_<bridge_id>_<key>`. |
+| `entity.py` | The Matter Hub device and one device per bridge, both with `entry_type` service (they are software, not hardware). Build them from keyword arguments (`hub_device_fields`), never by unpacking or changing a `DeviceInfo`, which is a dataclass from 2026.11. Unique IDs are `<entry_id>_<key>` and `<entry_id>_<bridge_id>_<key>`. |
 | `sensor.py`, `binary_sensor.py`, `switch.py`, `button.py` | Entities. Enum sensors use `BRIDGE_STATUSES` and `HEALTH_STATUSES` in `const.py`. |
 | `diagnostics.py` | Config entry diagnostics; `TO_REDACT` lists what is removed. |
 | `strings.json` + `translations/en.json` | Must stay identical. |

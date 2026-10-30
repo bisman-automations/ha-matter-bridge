@@ -7,7 +7,7 @@ from typing import Any
 
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -54,20 +54,33 @@ async def run_action(call: Awaitable[Any]) -> None:
         ) from err
 
 
+def hub_device_fields(
+    entry: MatterBridgeConfigEntry, health: dict[str, Any]
+) -> dict[str, Any]:
+    """The Matter Hub device's details, for the registry and for DeviceInfo.
+
+    Matter Hub and its bridges are software, so they are services, not devices.
+    Kept as plain keyword arguments: DeviceInfo becomes a dataclass in Home
+    Assistant 2026.11, so it can't be unpacked or changed like a dictionary.
+    """
+    return {
+        "identifiers": {hub_identifier(entry)},
+        "name": "Matter Hub",
+        "manufacturer": MATTER_HUB_NAME,
+        "model": "App"
+        if entry.data.get(CONF_CONNECTION) == CONNECTION_APP
+        else "Standalone",
+        "sw_version": health.get("version"),
+        "configuration_url": configuration_url(entry),
+        "entry_type": DeviceEntryType.SERVICE,
+    }
+
+
 def hub_device_info(
     entry: MatterBridgeConfigEntry, health: dict[str, Any]
 ) -> DeviceInfo:
     """The Matter Hub device; setup creates it before the bridges link to it."""
-    return DeviceInfo(
-        identifiers={hub_identifier(entry)},
-        name="Matter Hub",
-        manufacturer=MATTER_HUB_NAME,
-        model="App"
-        if entry.data.get(CONF_CONNECTION) == CONNECTION_APP
-        else "Standalone",
-        sw_version=health.get("version"),
-        configuration_url=configuration_url(entry),
-    )
+    return DeviceInfo(**hub_device_fields(entry, health))
 
 
 class MatterHubEntity(CoordinatorEntity[MatterHubCoordinator]):
@@ -104,18 +117,20 @@ class MatterBridgeEntity(CoordinatorEntity[MatterHubCoordinator]):
         self._attr_unique_id = f"{entry.entry_id}_{bridge_id}_{description.key}"
         bridge = self.bridge or {}
         info = bridge.get("basicInformation") or {}
-        self._attr_device_info = DeviceInfo(
-            identifiers={bridge_identifier(entry, bridge_id)},
-            name=bridge.get("name") or bridge_id,
-            manufacturer=info.get("vendorName") or MATTER_HUB_NAME,
-            model=info.get("productName") or "Matter bridge",
-            sw_version=info.get("softwareVersionString"),
-            hw_version=info.get("hardwareVersionString"),
-            serial_number=bridge_id,
-            configuration_url=configuration_url(entry),
-        )
+        fields: dict[str, Any] = {
+            "identifiers": {bridge_identifier(entry, bridge_id)},
+            "name": bridge.get("name") or bridge_id,
+            "manufacturer": info.get("vendorName") or MATTER_HUB_NAME,
+            "model": info.get("productName") or "Matter bridge",
+            "sw_version": info.get("softwareVersionString"),
+            "hw_version": info.get("hardwareVersionString"),
+            "serial_number": bridge_id,
+            "configuration_url": configuration_url(entry),
+            "entry_type": DeviceEntryType.SERVICE,
+        }
         if coordinator.hub_device_id is not None:
-            self._attr_device_info["via_device_id"] = coordinator.hub_device_id
+            fields["via_device_id"] = coordinator.hub_device_id
+        self._attr_device_info = DeviceInfo(**fields)
 
     @property
     def bridge(self) -> dict[str, Any] | None:

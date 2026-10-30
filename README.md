@@ -11,7 +11,7 @@
 [![Validate](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/validate.yml/badge.svg)](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/validate.yml)
 [![License](https://img.shields.io/github/license/bisman-automations/ha-matter-bridge)](LICENSE)
 
-Shows [Home Assistant Matter Hub](https://github.com/RiDDiX/home-assistant-matter-hub) as an integration under **Settings → Devices & services**, with a device for Matter Hub and one for each Matter bridge you created in it.
+Shows [Home Assistant Matter Hub](https://github.com/RiDDiX/home-assistant-matter-hub) as an integration under **Settings → Devices & services**, with a service for Matter Hub and one for each Matter bridge you created in it.
 
 Matter Hub does the Matter work: it publishes your Home Assistant entities to Apple Home, Google Home, Alexa and other Matter controllers. This integration lets you watch and control those bridges from Home Assistant, so you can see bridge status on dashboards, get alerted when a bridge fails, and restart or re-sync a bridge from an automation.
 

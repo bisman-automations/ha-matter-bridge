@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-30
+
+### Changed
+
+- **Matter Hub and its bridges show as services, not devices.** They are software, so they now appear under **Services** on the Matter Bridge page, like other software-only integrations, instead of in the device list. Entity names and IDs, and automations that use them, don't change.
+
+### Fixed
+
+- Set up the Matter Hub and bridge devices in a way that keeps working with Home Assistant 2026.11, where the device details format changes.
+
 ## [1.1.1] - 2026-10-30
 
 ### Changed
@@ -47,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Diagnostics with pairing codes, fabric IDs and credentials redacted.
   - Tests, Hassfest and HACS validation, and draft releases from CHANGELOG.md.
 
+[1.2.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/bisman-automations/ha-matter-bridge/releases/tag/v1.0.0

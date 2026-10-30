@@ -10,7 +10,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import DirectTransport, MatterHubClient, SupervisorTransport, Transport
 from .const import CONF_APP_SLUG, CONF_CONNECTION, CONNECTION_APP, DOMAIN
 from .coordinator import MatterBridgeConfigEntry, MatterHubCoordinator
-from .entity import bridge_identifier, hub_device_info, hub_identifier
+from .entity import bridge_identifier, hub_device_fields, hub_identifier
 
 # A bridge must be missing from this many successful polls in a row before
 # its device is removed. Matter Hub lists its bridges one by one while it
@@ -48,7 +48,7 @@ async def async_setup_entry(
 
     hub = dr.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,
-        **hub_device_info(entry, coordinator.data.health),
+        **hub_device_fields(entry, coordinator.data.health),
     )
     coordinator.hub_device_id = hub.id
 
