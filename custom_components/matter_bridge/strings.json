@@ -14,60 +14,74 @@
         "description": "Requests go through the app's Home Assistant ingress, so no port needs to be opened. Fill in a username and password only if you turned on authentication in Matter Hub's settings.",
         "data": {
           "app_slug": "App",
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]"
+          "username": "Username",
+          "password": "Password"
         }
       },
       "direct": {
         "title": "Matter Hub URL",
         "description": "Enter the address of the Matter Hub web interface (port 8482 by default). See {project_url} for installing Matter Hub.",
         "data": {
-          "url": "[%key:common::config_flow::data::url%]",
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]"
+          "url": "URL",
+          "username": "Username",
+          "password": "Password"
         }
       },
       "reconfigure": {
         "title": "Update Matter Hub connection",
         "data": {
-          "url": "[%key:common::config_flow::data::url%]",
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]"
+          "url": "URL",
+          "username": "Username",
+          "password": "Password"
         }
       },
       "reauth_confirm": {
         "title": "Matter Hub needs a password",
         "description": "Matter Hub now asks for a username and password.",
         "data": {
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]"
+          "username": "Username",
+          "password": "Password"
         }
       }
     },
     "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
       "app_not_running": "The Matter Hub app is not running. Start it and try again.",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "Unexpected error"
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
-      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]",
-      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]",
+      "already_configured": "Service is already configured",
+      "reauth_successful": "Re-authentication was successful",
+      "reconfigure_successful": "Re-configuration was successful",
       "different_hub": "This URL points to a different Matter Hub. Add it as a new integration instead."
     }
   },
   "entity": {
     "binary_sensor": {
-      "home_assistant_connected": { "name": "Home Assistant connection" },
-      "commissioned": { "name": "Commissioned" }
+      "home_assistant_connected": {
+        "name": "Home Assistant connection"
+      },
+      "commissioned": {
+        "name": "Commissioned"
+      }
     },
     "button": {
-      "restart_all": { "name": "Restart all bridges" },
-      "restart": { "name": "Restart" },
-      "refresh_devices": { "name": "Refresh devices" },
-      "force_sync": { "name": "Force sync" },
-      "open_commissioning_window": { "name": "Open pairing window" }
+      "restart_all": {
+        "name": "Restart all bridges"
+      },
+      "restart": {
+        "name": "Restart"
+      },
+      "refresh_devices": {
+        "name": "Refresh devices"
+      },
+      "force_sync": {
+        "name": "Force sync"
+      },
+      "open_commissioning_window": {
+        "name": "Open pairing window"
+      }
     },
     "sensor": {
       "hub_status": {
@@ -78,8 +92,12 @@
           "unhealthy": "Unhealthy"
         }
       },
-      "running_bridges": { "name": "Running bridges" },
-      "uptime": { "name": "Uptime" },
+      "running_bridges": {
+        "name": "Running bridges"
+      },
+      "uptime": {
+        "name": "Uptime"
+      },
       "bridge_status": {
         "name": "Status",
         "state": {
@@ -89,16 +107,34 @@
           "failed": "Failed"
         }
       },
-      "devices": { "name": "Devices" },
-      "fabrics": { "name": "Controllers" },
-      "failed_entities": { "name": "Failed entities" },
-      "pairing_code": { "name": "Pairing code" }
+      "devices": {
+        "name": "Devices"
+      },
+      "fabrics": {
+        "name": "Controllers"
+      },
+      "failed_entities": {
+        "name": "Failed entities"
+      },
+      "pairing_code": {
+        "name": "Pairing code"
+      }
     },
     "switch": {
-      "running": { "name": "Running" }
+      "running": {
+        "name": "Running"
+      }
     }
   },
   "exceptions": {
-    "action_failed": { "message": "Matter Hub could not do that: {error}" }
+    "action_failed": {
+      "message": "Matter Hub could not do that: {error}"
+    }
+  },
+  "issues": {
+    "app_unavailable": {
+      "title": "Matter Hub app isn't available",
+      "description": "Matter Bridge can't reach the Matter Hub app for **{title}**: {error}.\n\nStart the app under **Settings → Apps**. If you uninstalled it or moved Matter Hub to another install, open **Settings → Devices & services → Matter Bridge** and choose **Reconfigure**. This repair goes away once Matter Hub answers again."
+    }
   }
 }

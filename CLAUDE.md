@@ -7,7 +7,7 @@ device for Matter Hub and one per Matter bridge created in it, with health,
 status and pairing sensors, a start/stop switch and action buttons. It only
 reads and drives Matter Hub's REST API; it doesn't run a Matter server.
 
-Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2025.3.0).
+Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2026.8.0).
 
 ## Layout
 
@@ -42,7 +42,7 @@ Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2025.3.0).
 
 Run the shared checks at the end of this file, on the newest Home Assistant
 (`requirements_test.txt`, Python 3.14) and the oldest supported one
-(`requirements_test_min.txt`, Python 3.13). CI runs both.
+(`requirements_test_min.txt`, Python 3.14, Home Assistant 2026.8). CI runs both.
 
 Tests mock Matter Hub with `AiohttpClientMocker` for both transports
 (`URL` for direct, `SUPERVISOR` for ingress). Add a test for every behavior

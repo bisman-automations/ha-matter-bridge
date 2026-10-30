@@ -158,12 +158,55 @@ async def test_bridges_added_and_removed(
     new = {**bridges[1], "id": "b3", "name": "Office"}
     aioclient_mock.clear_requests()
     mock_direct(aioclient_mock, health, [bridges[0], new])
+    await _poll(hass)
+
+    assert hass.states.get("switch.office_running") is not None
+    assert _device(hass, entry, ("matter_bridge", f"{entry.entry_id}_b3")) is not None
+    # A bridge is only removed once it has been gone for three polls in a row.
+    b2 = ("matter_bridge", f"{entry.entry_id}_b2")
+    await _poll(hass)
+    assert _device(hass, entry, b2) is not None
+    await _poll(hass)
+    assert _device(hass, entry, b2) is None
+
+
+async def _poll(hass: HomeAssistant) -> None:
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=31))
     await hass.async_block_till_done()
 
-    assert hass.states.get("switch.office_running") is not None
-    assert _device(hass, entry, ("matter_bridge", f"{entry.entry_id}_b2")) is None
-    assert _device(hass, entry, ("matter_bridge", f"{entry.entry_id}_b3")) is not None
+
+async def test_restart_keeps_bridges(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    no_supervisor,
+    health,
+    bridges,
+) -> None:
+    """A Matter Hub restart (no bridges, then some) never deletes devices."""
+    entry = await _setup_direct(hass, aioclient_mock, health, bridges)
+    b1 = ("matter_bridge", f"{entry.entry_id}_b1")
+    b2 = ("matter_bridge", f"{entry.entry_id}_b2")
+
+    aioclient_mock.clear_requests()
+    mock_direct(aioclient_mock, health, [])
+    for _ in range(5):
+        await _poll(hass)
+    assert _device(hass, entry, b1) is not None
+    assert _device(hass, entry, b2) is not None
+
+    # Starting up: only the first bridge is listed for two polls, then both.
+    aioclient_mock.clear_requests()
+    mock_direct(aioclient_mock, health, [bridges[0]])
+    await _poll(hass)
+    await _poll(hass)
+    aioclient_mock.clear_requests()
+    mock_direct(aioclient_mock, health, bridges)
+    await _poll(hass)
+    aioclient_mock.clear_requests()
+    mock_direct(aioclient_mock, health, [bridges[0]])
+    await _poll(hass)
+    await _poll(hass)
+    assert _device(hass, entry, b2) is not None
 
 
 async def test_auth_failure_starts_reauth(
@@ -242,3 +285,41 @@ async def test_unload(
     assert await hass.config_entries.async_unload(entry.entry_id)
     assert entry.state is ConfigEntryState.NOT_LOADED
     assert er.async_get(hass).async_get("sensor.living_room_status") is not None
+
+
+async def test_app_unavailable_repair(
+    hass: HomeAssistant,
+    hass_owner_user: User,
+    aioclient_mock: AiohttpClientMocker,
+    supervisor_env,
+    health,
+    bridges,
+) -> None:
+    """A stopped app raises a repair, which goes once Matter Hub answers."""
+    from homeassistant.helpers import issue_registry as ir
+
+    mock_supervisor(aioclient_mock, health, bridges)
+    entry = app_entry()
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    issue_id = f"app_unavailable_{entry.entry_id}"
+    issues = ir.async_get(hass)
+    assert issues.async_get_issue("matter_bridge", issue_id) is None
+
+    coordinator = entry.runtime_data
+    coordinator.client.transport._ingress_session = None
+    aioclient_mock.clear_requests()
+    mock_supervisor(aioclient_mock, health, bridges, state="stopped")
+    await _poll(hass)
+    issue = issues.async_get_issue("matter_bridge", issue_id)
+    assert issue is not None
+    assert issue.translation_key == "app_unavailable"
+    assert hass.states.get("sensor.living_room_status").state == "unavailable"
+
+    aioclient_mock.clear_requests()
+    mock_supervisor(aioclient_mock, health, bridges)
+    await _poll(hass)
+    assert issues.async_get_issue("matter_bridge", issue_id) is None
+
+    await hass.config_entries.async_remove(entry.entry_id)

@@ -54,6 +54,22 @@ async def run_action(call: Awaitable[Any]) -> None:
         ) from err
 
 
+def hub_device_info(
+    entry: MatterBridgeConfigEntry, health: dict[str, Any]
+) -> DeviceInfo:
+    """The Matter Hub device; setup creates it before the bridges link to it."""
+    return DeviceInfo(
+        identifiers={hub_identifier(entry)},
+        name="Matter Hub",
+        manufacturer=MATTER_HUB_NAME,
+        model="App"
+        if entry.data.get(CONF_CONNECTION) == CONNECTION_APP
+        else "Standalone",
+        sw_version=health.get("version"),
+        configuration_url=configuration_url(entry),
+    )
+
+
 class MatterHubEntity(CoordinatorEntity[MatterHubCoordinator]):
     """An entity on the Matter Hub device."""
 
@@ -67,16 +83,7 @@ class MatterHubEntity(CoordinatorEntity[MatterHubCoordinator]):
         self.entity_description = description
         self._attr_unique_id = f"{entry.entry_id}_{description.key}"
         health = coordinator.data.health if coordinator.data else {}
-        self._attr_device_info = DeviceInfo(
-            identifiers={hub_identifier(entry)},
-            name="Matter Hub",
-            manufacturer=MATTER_HUB_NAME,
-            model="App"
-            if entry.data.get(CONF_CONNECTION) == CONNECTION_APP
-            else "Standalone",
-            sw_version=health.get("version"),
-            configuration_url=configuration_url(entry),
-        )
+        self._attr_device_info = hub_device_info(entry, health)
 
 
 class MatterBridgeEntity(CoordinatorEntity[MatterHubCoordinator]):
@@ -105,9 +112,10 @@ class MatterBridgeEntity(CoordinatorEntity[MatterHubCoordinator]):
             sw_version=info.get("softwareVersionString"),
             hw_version=info.get("hardwareVersionString"),
             serial_number=bridge_id,
-            via_device=hub_identifier(entry),
             configuration_url=configuration_url(entry),
         )
+        if coordinator.hub_device_id is not None:
+            self._attr_device_info["via_device_id"] = coordinator.hub_device_id
 
     @property
     def bridge(self) -> dict[str, Any] | None:

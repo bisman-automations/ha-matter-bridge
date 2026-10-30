@@ -130,5 +130,11 @@
     "action_failed": {
       "message": "Matter Hub could not do that: {error}"
     }
+  },
+  "issues": {
+    "app_unavailable": {
+      "title": "Matter Hub app isn't available",
+      "description": "Matter Bridge can't reach the Matter Hub app for **{title}**: {error}.\n\nStart the app under **Settings → Apps**. If you uninstalled it or moved Matter Hub to another install, open **Settings → Devices & services → Matter Bridge** and choose **Reconfigure**. This repair goes away once Matter Hub answers again."
+    }
   }
 }

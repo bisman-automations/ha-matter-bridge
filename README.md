@@ -5,7 +5,7 @@
 # Matter Bridge
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.3%2B-blue.svg)](https://www.home-assistant.io/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![GitHub Release](https://img.shields.io/github/v/release/bisman-automations/ha-matter-bridge)](https://github.com/bisman-automations/ha-matter-bridge/releases)
 [![Test](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/test.yml/badge.svg)](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/test.yml)
 [![Validate](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/validate.yml/badge.svg)](https://github.com/bisman-automations/ha-matter-bridge/actions/workflows/validate.yml)
@@ -17,7 +17,7 @@ Matter Hub does the Matter work: it publishes your Home Assistant entities to Ap
 
 ## Requirements
 
-* Home Assistant 2025.3 or newer
+* Home Assistant 2026.8 or newer
 * Home Assistant Matter Hub, either:
   * the **Matter Hub app** (add-on) on Home Assistant OS or Supervised, or
   * Matter Hub in Docker or standalone, reachable over the network (port 8482 by default)
@@ -31,7 +31,7 @@ Matter Hub does the Matter work: it publishes your Home Assistant entities to Ap
 1. Click the button above, or in HACS open the menu, choose **Custom repositories**, and add `https://github.com/bisman-automations/ha-matter-bridge` as an **Integration**.
 2. Download **Matter Bridge** and restart Home Assistant.
 
-Requires **Home Assistant 2025.3 or newer**.
+Requires **Home Assistant 2026.8 or newer**.
 
 ### Manual
 
@@ -110,6 +110,8 @@ Download diagnostics from the integration page. Pairing codes, passcodes, fabric
 ## Troubleshooting
 
 * **"The Matter Hub app is not running"**: start the app, then retry setup. While the app is stopped, the entities show as unavailable and come back on their own.
+* **Repair says the Matter Hub app isn't available**: start the app under **Settings → Apps**. If you uninstalled it or moved Matter Hub, choose **Reconfigure** on the integration.
+* **A bridge you deleted in Matter Hub is still listed**: its device is removed after about a minute and a half, once Matter Hub has left it out of three updates in a row.
 * **Asked for a username and password after setup**: authentication was turned on in Matter Hub. Enter the same credentials in the repair prompt.
 * **Docker install not reachable**: make sure the address opens the Matter Hub UI in a browser on the same network as Home Assistant.
 
@@ -142,7 +144,7 @@ ruff check . && ruff format --check .
 pytest
 ```
 
-To test against the oldest supported Home Assistant (2025.3), use Python 3.13 and
+To test against the oldest supported Home Assistant (2026.8), use Python 3.14 and
 `pip install -r requirements_test_min.txt` instead.
 
 CI runs the same checks on every push and pull request, on both Home Assistant
