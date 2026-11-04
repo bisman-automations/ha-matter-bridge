@@ -5,21 +5,17 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from homeassistant.const import CONF_URL
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import MatterHubError
-from .const import (
-    CONF_APP_SLUG,
-    CONF_CONNECTION,
-    CONNECTION_APP,
-    DOMAIN,
-    MATTER_HUB_NAME,
-)
+from .const import DOMAIN, MATTER_HUB_NAME
 from .coordinator import MatterBridgeConfigEntry, MatterHubCoordinator
 
 
@@ -35,11 +31,27 @@ def bridge_identifier(
     return (DOMAIN, f"{entry.entry_id}_{bridge_id}")
 
 
+def bridge_id_of(entry: MatterBridgeConfigEntry, device: dr.DeviceEntry) -> str | None:
+    """The Matter Hub bridge id a device stands for, if it is one of ours.
+
+    The hub device's identifier is the entry id. A bridge's is
+    ``<entry_id>_<bridge_id>``.
+    """
+    prefix = f"{entry.entry_id}_"
+    for domain, value in device.identifiers:
+        if domain == DOMAIN and value.startswith(prefix):
+            return value.removeprefix(prefix)
+    return None
+
+
 def configuration_url(entry: MatterBridgeConfigEntry) -> str | None:
-    """Open the app panel for app installs, the web UI for direct ones."""
-    if entry.data.get(CONF_CONNECTION) == CONNECTION_APP:
-        return f"homeassistant://hassio/ingress/{entry.data[CONF_APP_SLUG]}"
-    return entry.data.get("url")
+    """The Matter Hub web interface.
+
+    Pairing codes are shown there, not on an entity. Home Assistant opens
+    this as the service's Visit link. It is always a normal URL, including
+    for the Matter Hub app (host network, port 8482).
+    """
+    return entry.data.get(CONF_URL)
 
 
 async def run_action(call: Awaitable[Any]) -> None:
@@ -67,9 +79,7 @@ def hub_device_fields(
         "identifiers": {hub_identifier(entry)},
         "name": "Matter Hub",
         "manufacturer": MATTER_HUB_NAME,
-        "model": "App"
-        if entry.data.get(CONF_CONNECTION) == CONNECTION_APP
-        else "Standalone",
+        "model": "Standalone",
         "sw_version": health.get("version"),
         "configuration_url": configuration_url(entry),
         "entry_type": DeviceEntryType.SERVICE,
@@ -149,18 +159,48 @@ def add_bridge_entities(
     async_add_entities: AddConfigEntryEntitiesCallback,
     factory: Callable[[str], list[MatterBridgeEntity]],
 ) -> None:
-    """Add entities for every bridge now and for bridges created later."""
+    """Add entities for every bridge now and for bridges created later.
+
+    ``known`` is the bridge ids this platform has already added. It shrinks
+    when that bridge's device is gone, so a bridge that is deleted and later
+    created again gets entities. It does not shrink on a failed poll (the
+    data is stale) or while Matter Hub lists no bridges (it is restarting):
+    the entities are still registered, and adding them again makes Home
+    Assistant reject the duplicate unique id.
+    """
     known: set[str] = set()
 
     @callback
     def _add_new() -> None:
-        if not coordinator.data:
+        if not coordinator.last_update_success or not coordinator.data:
             return
-        new = [bid for bid in coordinator.data.bridges if bid not in known]
+        current = coordinator.data.bridges
+        current_ids = set(current)
+        # An empty list is a restart, not "every bridge was deleted".
+        if not current_ids:
+            return
+        if known - current_ids:
+            # A bridge id that is absent and whose device is already gone
+            # leaves ``known``. One that is merely absent this poll stays:
+            # its entities are still registered, and adding them again is
+            # rejected as a duplicate unique id.
+            entry = coordinator.config_entry
+            registry = dr.async_get(coordinator.hass)
+            still_there = {
+                bridge_id
+                for device in dr.async_entries_for_config_entry(
+                    registry, entry.entry_id
+                )
+                if (bridge_id := bridge_id_of(entry, device)) is not None
+            }
+            known.intersection_update(current_ids | still_there)
+        new = [bridge_id for bridge_id in current if bridge_id not in known]
         if not new:
             return
         known.update(new)
-        async_add_entities([ent for bid in new for ent in factory(bid)])
+        async_add_entities(
+            [entity for bridge_id in new for entity in factory(bridge_id)]
+        )
 
     _add_new()
     coordinator.config_entry.async_on_unload(coordinator.async_add_listener(_add_new))

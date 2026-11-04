@@ -3,8 +3,8 @@
 Matter Bridge is a HACS custom integration (`custom_components/matter_bridge`,
 domain `matter_bridge`) that shows [Home Assistant Matter
 Hub](https://github.com/RiDDiX/home-assistant-matter-hub) in Home Assistant: a
-device for Matter Hub and one per Matter bridge created in it, with health,
-status and pairing sensors, a start/stop switch and action buttons. It only
+device for Matter Hub and one per Matter bridge created in it, with health
+and status sensors, a start/stop switch and action buttons. It only
 reads and drives Matter Hub's REST API; it doesn't run a Matter server.
 
 Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2026.8.0).
@@ -13,8 +13,9 @@ Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2026.8.0).
 
 | Path | What it is |
 | --- | --- |
-| `api.py` | The Matter Hub REST client. Two transports: the Matter Hub **app** (add-on), reached through Supervisor ingress (`http://supervisor/ingress/<token>/...` with an ingress session Home Assistant creates), and a **direct** URL for Docker or standalone installs (default port 8482). |
-| `config_flow.py` | Setup picks the connection: `app` (lists installed apps whose slug is in `APP_SLUGS` or whose URL contains `APP_PROJECT_URL_MARKER`) or `direct` (URL, optional username and password). Reconfigure and reauth. |
+| `api.py` | The Matter Hub REST client. One transport: a URL (default port 8482), for Docker, standalone, and the Matter Hub app. The app uses the host network, so the URL is this system's hostname and port 8482. There is no Supervisor or ingress client. |
+| `config_flow.py` | Setup asks for that URL and optional username and password. Reconfigure and reauth. No `async_step_hassio`: the Matter Hub add-on configs (`hamh`, `hamh-alpha`, `hamh-testing` in RiDDiX/home-assistant-addons) do not set `discovery:`. |
+| `repairs.py` | Fix flow for a 1.x entry with `connection: app`. It asks for a URL, writes it onto the same entry and reloads, so device and entity unique ids stay. |
 | `coordinator.py` | Polls health and the bridge list every 30 seconds (`DEFAULT_SCAN_INTERVAL`). |
 | `entity.py` | The Matter Hub device and one device per bridge, both with `entry_type` service (they are software, not hardware). Build them from keyword arguments (`hub_device_fields`), never by unpacking or changing a `DeviceInfo`, which is a dataclass from 2026.11. Unique IDs are `<entry_id>_<key>` and `<entry_id>_<bridge_id>_<key>`. |
 | `sensor.py`, `binary_sensor.py`, `switch.py`, `button.py` | Entities. Enum sensors use `BRIDGE_STATUSES` and `HEALTH_STATUSES` in `const.py`. |
@@ -26,10 +27,17 @@ Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2026.8.0).
 
 - **Pairing codes are secrets.** Matter Hub returns each bridge's manual and
   QR pairing codes, passcode and discriminator. Anyone with them can pair the
-  bridge to their own controller. Never put them in logs, exceptions, test
-  fixtures that look real, the README, issues or CHANGELOG. When the API
-  grows a field like these, add it to `TO_REDACT` and to the README's
-  diagnostics warning.
+  bridge to their own controller. They are not entity state, attributes or
+  events. Never put them in logs, exceptions, test fixtures that look real,
+  the README, issues or CHANGELOG. When the API grows a field like these, add
+  it to `PAIRING_CODE_KEYS` in `const.py` (diagnostics also redact any string
+  that starts with `MT:`) and to the README's diagnostics warning. The code
+  is read from the Matter Hub web interface, linked as the device's
+  `configuration_url`.
+- **1.x app entries.** `connection: app` is refused in `async_setup_entry`
+  with `ConfigEntryError` (`ingress_removed`) and a fixable repair. Do not
+  mint an ingress session or call the Supervisor API. The repair keeps the
+  entry id.
 - Use RFC 5737 addresses (`192.0.2.x`) and made-up slugs in tests, as
   `tests/conftest.py` does.
 - The Matter Hub API isn't versioned. Read responses leniently (missing keys,
@@ -44,9 +52,11 @@ Run the shared checks at the end of this file, on the newest Home Assistant
 (`requirements_test.txt`, Python 3.14) and the oldest supported one
 (`requirements_test_min.txt`, Python 3.14, Home Assistant 2026.8). CI runs both.
 
-Tests mock Matter Hub with `AiohttpClientMocker` for both transports
-(`URL` for direct, `SUPERVISOR` for ingress). Add a test for every behavior
-change.
+Tests mock Matter Hub with `AiohttpClientMocker` at `URL`. Add a test for
+every behavior change. Bridge devices are removed only after three
+successful polls that leave the bridge out; a failed poll must not count or
+reset that streak. `add_bridge_entities` drops a bridge id from its `known`
+set once that bridge's device is gone, so a later re-add creates entities.
 
 ## Release notes for this repo
 

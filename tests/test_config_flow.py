@@ -8,20 +8,18 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
+from custom_components.matter_bridge.config_flow import MatterBridgeConfigFlow
 from custom_components.matter_bridge.const import (
-    CONF_APP_SLUG,
     CONF_CONNECTION,
-    CONNECTION_APP,
     CONNECTION_DIRECT,
     DOMAIN,
 )
 from homeassistant import config_entries
-from homeassistant.auth.models import User
 from homeassistant.const import CONF_PASSWORD, CONF_URL, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from .conftest import SLUG, URL, direct_entry, mock_direct, mock_supervisor
+from .conftest import SLUG, URL, app_entry, direct_entry, mock_direct
 
 
 @pytest.fixture(autouse=True)
@@ -33,10 +31,19 @@ def no_setup():
         yield
 
 
-async def test_direct_flow(
+def test_no_hassio_discovery_step() -> None:
+    """The Matter Hub app does not publish Supervisor discovery.
+
+    ConfigFlow has a generic hassio step. This integration does not define
+    its own, because the add-on never sends discovery.
+    """
+    assert "async_step_hassio" not in MatterBridgeConfigFlow.__dict__
+    assert "async_step_app" not in MatterBridgeConfigFlow.__dict__
+
+
+async def test_user_flow(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,
-    no_supervisor,
     health,
     bridges,
 ) -> None:
@@ -45,7 +52,15 @@ async def test_direct_flow(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
     assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "direct"
+    assert result["step_id"] == "user"
+    assert (
+        result["description_placeholders"]["project_url"]
+        == "https://github.com/RiDDiX/home-assistant-matter-hub"
+    )
+    assert (
+        result["description_placeholders"]["example_url"]
+        == "http://homeassistant.local:8482"
+    )
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_URL: "192.0.2.20:8482/"}
@@ -54,6 +69,19 @@ async def test_direct_flow(
     assert result["title"] == "Matter Hub (192.0.2.20)"
     assert result["data"] == {CONF_CONNECTION: CONNECTION_DIRECT, CONF_URL: URL}
     assert result["result"].unique_id == "direct_192.0.2.20:8482"
+
+
+async def test_user_flow_ignores_supervisor_token(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, monkeypatch
+) -> None:
+    """A Supervisor token does not start an app lookup or an ingress session."""
+    monkeypatch.setenv("SUPERVISOR_TOKEN", "core-token")
+    monkeypatch.setenv("SUPERVISOR", "supervisor")
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["step_id"] == "user"
+    assert aioclient_mock.mock_calls == []
 
 
 @pytest.mark.parametrize(
@@ -69,10 +97,9 @@ async def test_direct_flow(
         ),
     ],
 )
-async def test_direct_flow_errors(
+async def test_user_flow_errors(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,
-    no_supervisor,
     health,
     bridges,
     mock_kwargs,
@@ -97,8 +124,8 @@ async def test_direct_flow_errors(
     assert result["data"][CONF_USERNAME] == "admin"
 
 
-async def test_direct_already_configured(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, no_supervisor
+async def test_user_already_configured(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
 ) -> None:
     direct_entry().add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
@@ -111,71 +138,9 @@ async def test_direct_already_configured(
     assert result["reason"] == "already_configured"
 
 
-async def test_app_flow(
-    hass: HomeAssistant,
-    hass_owner_user: User,
-    aioclient_mock: AiohttpClientMocker,
-    supervisor_env,
-    health,
-    bridges,
-) -> None:
-    mock_supervisor(aioclient_mock, health, bridges)
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert result["type"] is FlowResultType.MENU
-    assert result["menu_options"] == ["app", "direct"]
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"next_step_id": "app"}
-    )
-    assert result["step_id"] == "app"
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {CONF_APP_SLUG: SLUG}
-    )
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Home-Assistant-Matter-Hub"
-    assert result["data"] == {CONF_CONNECTION: CONNECTION_APP, CONF_APP_SLUG: SLUG}
-    assert result["result"].unique_id == f"app_{SLUG}"
-
-
-async def test_app_flow_not_running(
-    hass: HomeAssistant,
-    hass_owner_user: User,
-    aioclient_mock: AiohttpClientMocker,
-    supervisor_env,
-    health,
-    bridges,
-) -> None:
-    mock_supervisor(aioclient_mock, health, bridges, state="stopped")
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"next_step_id": "app"}
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {CONF_APP_SLUG: SLUG}
-    )
-    assert result["errors"] == {"base": "app_not_running"}
-
-
-async def test_supervisor_without_app_goes_direct(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, supervisor_env
-) -> None:
-    aioclient_mock.get(
-        "http://supervisor/addons", json={"result": "ok", "data": {"addons": []}}
-    )
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert result["step_id"] == "direct"
-
-
 async def test_reauth(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,
-    no_supervisor,
     health,
     bridges,
 ) -> None:
@@ -199,7 +164,6 @@ async def test_reauth(
 async def test_reconfigure(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,
-    no_supervisor,
     health,
     bridges,
 ) -> None:
@@ -208,6 +172,7 @@ async def test_reconfigure(
     mock_direct(aioclient_mock, health, bridges)
     result = await entry.start_reconfigure_flow(hass)
     assert result["step_id"] == "reconfigure"
+    assert "clear" in result["description_placeholders"]["credential_hint"]
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_URL: URL, CONF_USERNAME: "admin", CONF_PASSWORD: "pw"}
     )
@@ -219,3 +184,32 @@ async def test_reconfigure(
         result["flow_id"], {CONF_URL: "http://192.0.2.99:8482"}
     )
     assert result["reason"] == "different_hub"
+
+
+async def test_reconfigure_converts_app_entry(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    health,
+    bridges,
+) -> None:
+    """Reconfigure turns a 1.x app entry into a URL entry, same entry id."""
+    entry = app_entry(username="admin", password="secret")
+    entry_id = entry.entry_id
+    entry.add_to_hass(hass)
+    mock_direct(aioclient_mock, health, bridges)
+    result = await entry.start_reconfigure_flow(hass)
+    assert result["step_id"] == "reconfigure"
+    assert "keep" in result["description_placeholders"]["credential_hint"]
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_URL: URL}
+    )
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.entry_id == entry_id
+    assert entry.unique_id == "direct_192.0.2.20:8482"
+    assert entry.data[CONF_CONNECTION] == CONNECTION_DIRECT
+    assert entry.data[CONF_URL] == URL
+    assert entry.data[CONF_USERNAME] == "admin"
+    assert entry.data[CONF_PASSWORD] == "secret"
+    assert "app_slug" not in entry.data
+    assert entry.title == "Matter Hub (192.0.2.20)"
+    assert SLUG not in entry.unique_id

@@ -1,4 +1,10 @@
-"""Fixtures for Matter Bridge tests."""
+"""Fixtures for Matter Bridge tests.
+
+The commissioning block uses the Matter SDK's published example values
+(passcode 20202021, discriminator 3840). They are not a real bridge. Tests
+assert they never reach state, attributes, events or this integration's logs,
+and that diagnostics redact them.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +13,6 @@ from typing import Any
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.matter_bridge.const import (
     CONF_APP_SLUG,
@@ -19,10 +24,12 @@ from custom_components.matter_bridge.const import (
 from homeassistant.const import CONF_URL
 
 URL = "http://192.0.2.20:8482"
-SUPERVISOR = "http://supervisor"
 SLUG = "3fd9e6b0_hamh"
-INGRESS_TOKEN = "abc123TOKEN"
-INGRESS = f"{SUPERVISOR}/ingress/{INGRESS_TOKEN}"
+
+# Matter SDK example values. Not a secret from a real bridge.
+EXAMPLE_MANUAL_CODE = "34970112332"
+EXAMPLE_QR_CODE = "MT:Y.K9042C00KA0648G00"
+EXAMPLE_PASSCODE = 20202021
 
 HEALTH: dict[str, Any] = {
     "status": "healthy",
@@ -54,10 +61,10 @@ BRIDGES: list[dict[str, Any]] = [
         },
         "commissioning": {
             "isCommissioned": True,
-            "passcode": 20202021,
+            "passcode": EXAMPLE_PASSCODE,
             "discriminator": 3840,
-            "manualPairingCode": "34970112332",
-            "qrPairingCode": "MT:Y.K9042C00KA0648G00",
+            "manualPairingCode": EXAMPLE_MANUAL_CODE,
+            "qrPairingCode": EXAMPLE_QR_CODE,
             "fabrics": [
                 {
                     "fabricIndex": 1,
@@ -99,62 +106,9 @@ def bridges() -> list[dict[str, Any]]:
     return copy.deepcopy(BRIDGES)
 
 
-@pytest.fixture
-def supervisor_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SUPERVISOR", "supervisor")
-    monkeypatch.setenv("SUPERVISOR_TOKEN", "core-token")
-
-
-@pytest.fixture
-def no_supervisor(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("SUPERVISOR_TOKEN", raising=False)
-
-
-def mock_direct(aioclient_mock: AiohttpClientMocker, health, bridges) -> None:
+def mock_direct(aioclient_mock, health, bridges) -> None:
     aioclient_mock.get(f"{URL}/api/health", json=health)
     aioclient_mock.get(f"{URL}/api/matter/bridges", json=bridges)
-
-
-def mock_supervisor(
-    aioclient_mock: AiohttpClientMocker, health, bridges, *, state: str = "started"
-) -> None:
-    aioclient_mock.get(
-        f"{SUPERVISOR}/addons",
-        json={
-            "result": "ok",
-            "data": {
-                "addons": [
-                    {
-                        "slug": "core_mosquitto",
-                        "name": "Mosquitto broker",
-                        "state": "started",
-                    },
-                    {
-                        "slug": SLUG,
-                        "name": "Home-Assistant-Matter-Hub",
-                        "state": state,
-                        "version": "2.0.59",
-                    },
-                ]
-            },
-        },
-    )
-    aioclient_mock.get(
-        f"{SUPERVISOR}/addons/{SLUG}/info",
-        json={
-            "result": "ok",
-            "data": {
-                "state": state,
-                "ingress_entry": f"/api/hassio_ingress/{INGRESS_TOKEN}",
-            },
-        },
-    )
-    aioclient_mock.post(
-        f"{SUPERVISOR}/ingress/session",
-        json={"result": "ok", "data": {"session": "sess1"}},
-    )
-    aioclient_mock.get(f"{INGRESS}/api/health", json=health)
-    aioclient_mock.get(f"{INGRESS}/api/matter/bridges", json=bridges)
 
 
 def direct_entry() -> MockConfigEntry:
@@ -166,10 +120,11 @@ def direct_entry() -> MockConfigEntry:
     )
 
 
-def app_entry() -> MockConfigEntry:
+def app_entry(**extra: Any) -> MockConfigEntry:
+    """A 1.x entry that reached Matter Hub through Supervisor ingress."""
     return MockConfigEntry(
         domain=DOMAIN,
         title="Home-Assistant-Matter-Hub",
         unique_id=f"app_{SLUG}",
-        data={CONF_CONNECTION: CONNECTION_APP, CONF_APP_SLUG: SLUG},
+        data={CONF_CONNECTION: CONNECTION_APP, CONF_APP_SLUG: SLUG, **extra},
     )

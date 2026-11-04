@@ -3,24 +3,7 @@
     "step": {
       "user": {
         "title": "Connect to Matter Hub",
-        "description": "Home Assistant Matter Hub is installed as an app. Connect to it, or to a Matter Hub running somewhere else.",
-        "menu_options": {
-          "app": "Matter Hub app on this Home Assistant",
-          "direct": "Matter Hub at a URL (Docker or standalone)"
-        }
-      },
-      "app": {
-        "title": "Matter Hub app",
-        "description": "Requests go through the app's Home Assistant ingress, so no port needs to be opened. Fill in a username and password only if you turned on authentication in Matter Hub's settings.",
-        "data": {
-          "app_slug": "App",
-          "username": "Username",
-          "password": "Password"
-        }
-      },
-      "direct": {
-        "title": "Matter Hub URL",
-        "description": "Enter the address of the Matter Hub web interface (port 8482 by default). See {project_url} for installing Matter Hub.",
+        "description": "Enter the address of the Matter Hub web interface.\n\nThe Matter Hub app uses the host network, so it has no separate hostname on the Supervisor network. Unless you changed the port, it listens on 8482. On this system that is usually {example_url}. If that name does not resolve, use the IP address of this Home Assistant with the same port. Open the Matter Hub panel in the sidebar if you need to confirm the port. This integration connects to that address directly.\n\nDocker and standalone Matter Hub use the host and port where you published the web interface, also 8482 by default.\n\nA username and password are only needed when authentication is turned on in Matter Hub. Installing Matter Hub: {project_url}.",
         "data": {
           "url": "URL",
           "username": "Username",
@@ -29,6 +12,7 @@
       },
       "reconfigure": {
         "title": "Update Matter Hub connection",
+        "description": "Enter the Matter Hub address. The app uses the host network and port 8482, usually {example_url}. If that name does not resolve, use the IP address of this Home Assistant with the same port. {credential_hint} See {project_url}.",
         "data": {
           "url": "URL",
           "username": "Username",
@@ -47,7 +31,6 @@
     "error": {
       "cannot_connect": "Failed to connect",
       "invalid_auth": "Invalid authentication",
-      "app_not_running": "The Matter Hub app is not running. Start it and try again.",
       "unknown": "Unexpected error"
     },
     "abort": {
@@ -115,9 +98,6 @@
       },
       "failed_entities": {
         "name": "Failed entities"
-      },
-      "pairing_code": {
-        "name": "Pairing code"
       }
     },
     "switch": {
@@ -129,12 +109,36 @@
   "exceptions": {
     "action_failed": {
       "message": "Matter Hub could not do that: {error}"
+    },
+    "ingress_removed": {
+      "message": "Matter Bridge no longer connects through Home Assistant ingress. Enter the Matter Hub address in the repair for {title}."
     }
   },
   "issues": {
-    "app_unavailable": {
-      "title": "Matter Hub app isn't available",
-      "description": "Matter Bridge can't reach the Matter Hub app for **{title}**: {error}.\n\nStart the app under **Settings → Apps**. If you uninstalled it or moved Matter Hub to another install, open **Settings → Devices & services → Matter Bridge** and choose **Reconfigure**. This repair goes away once Matter Hub answers again."
+    "ingress_removed": {
+      "title": "Matter Bridge needs a URL for {title}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Enter the Matter Hub address",
+            "description": "Matter Bridge no longer reaches {title} through a Home Assistant ingress session, so the integration is not loaded. Ingress sessions belong to a logged-in user, and an integration cannot create one.\n\nEnter the Matter Hub address to keep using this same integration. Its devices, entity names and automations stay.\n\nThe Matter Hub app uses the host network and port 8482, so on this system the address is usually {example_url}. If that name does not resolve, use the IP address of this Home Assistant with the same port. Docker and standalone installs use the host and port where Matter Hub is published.\n\nLeave the username and password blank to keep ones already saved. Pairing codes are shown in the Matter Hub web interface, which the link on the service opens once this is running. See {project_url}.",
+            "data": {
+              "url": "URL",
+              "username": "Username",
+              "password": "Password"
+            }
+          }
+        },
+        "error": {
+          "cannot_connect": "Failed to connect",
+          "invalid_auth": "Invalid authentication",
+          "unknown": "Unexpected error",
+          "already_configured": "Another Matter Bridge entry already uses this address."
+        },
+        "abort": {
+          "entry_gone": "This Matter Bridge entry was removed."
+        }
+      }
     }
   }
 }

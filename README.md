@@ -18,9 +18,7 @@ Matter Hub does the Matter work: it publishes your Home Assistant entities to Ap
 ## Requirements
 
 * Home Assistant 2026.8 or newer
-* Home Assistant Matter Hub, either:
-  * the **Matter Hub app** (add-on) on Home Assistant OS or Supervised, or
-  * Matter Hub in Docker or standalone, reachable over the network (port 8482 by default)
+* Home Assistant Matter Hub, reachable over the network at its web interface (port 8482 by default). That is the Matter Hub app on Home Assistant OS or Supervised, or Matter Hub in Docker or standalone.
 
 ## Installation
 
@@ -52,19 +50,30 @@ Download `matter_bridge.zip` from the [latest release](https://github.com/bisman
 
 Or go to **Settings → Devices & services → Add integration → Matter Bridge**.
 
-Setup finds the Matter Hub app on its own when it is installed; otherwise point it at a Matter Hub URL.
+Setup asks for the address of the Matter Hub web interface.
 
 ### Connecting to the Matter Hub app
 
-When the Matter Hub app is installed, setup offers it first. Pick it and submit; nothing else is needed.
+The app uses the host network. It does not get its own hostname on the Supervisor network, and this integration does not open a Home Assistant ingress session. Unless you changed the port, the web interface is on port **8482**. Enter one of these:
 
-The app only accepts requests from Home Assistant's ingress proxy, so the integration talks to it the same way the Matter Hub panel in the sidebar does. No port has to be opened, and it keeps working when the app restarts on a new internal port. The stable, alpha and testing channels of the app are all detected.
+* `http://homeassistant.local:8482`
+* the IP address of this Home Assistant, on port 8482, if that name does not resolve
+
+Open the Matter Hub panel in the sidebar if you want to confirm the port. The address above is what you put in the URL field; the panel and the integration are separate.
+
+The app does not publish Supervisor discovery, so the address is entered by hand. The stable, alpha and testing channels of the app all use the same host and port.
 
 ### Connecting to Docker or standalone Matter Hub
 
-Choose **Matter Hub at a URL** and enter the web interface address, for example `http://192.168.1.50:8482`.
+Enter the web interface address, for example `http://192.0.2.50:8482`.
+
+### Username and password
 
 If you turned on authentication in Matter Hub's settings (or set `HAMH_HTTP_AUTH_USERNAME` / `HAMH_HTTP_AUTH_PASSWORD`), enter the same username and password. If Matter Hub has an IP allow list, add your Home Assistant host to it.
+
+### Setups that used the Matter Hub app connection
+
+Versions before 2.0.0 could connect through Home Assistant ingress. Those setups are not loaded after you update. A repair under **Settings → System → Repairs** asks for the address above and keeps the devices and entities you already have. You can also choose **Reconfigure** on the integration.
 
 ## Devices and entities
 
@@ -88,13 +97,12 @@ If you turned on authentication in Matter Hub's settings (or set `HAMH_HTTP_AUTH
 | Controllers | Paired controllers (fabrics), with their names as an attribute |
 | Commissioned | On once a controller has paired |
 | Failed entities | Entities Matter Hub could not expose, with the reasons as an attribute |
-| Pairing code | Manual pairing code, with the QR code payload as an attribute |
 | Restart, Refresh devices, Force sync | Bridge actions from the Matter Hub UI |
-| Open pairing window | Lets another controller pair with an already commissioned bridge |
+| Open pairing window | Asks Matter Hub to let another controller pair with an already commissioned bridge |
 
-Bridges you add in Matter Hub appear automatically, and bridges you delete are removed. Data refreshes every 30 seconds and right after every action.
+Bridges you add in Matter Hub appear automatically. A bridge you delete is removed after three successful updates that leave it out (about a minute and a half). An update that cannot reach Matter Hub does not count. If you create that bridge again later, its entities come back.
 
-To create bridges or change which entities they expose, use the Matter Hub UI: the bridge and hub devices have a **Visit** link that opens it.
+To create bridges, change which entities they expose, or read a pairing code, use the Matter Hub web interface. The Matter Hub and bridge services have a **Visit** link that opens it. Home Assistant does not show the manual pairing code or the QR code: anyone who can read a state could otherwise add the bridge to their own controller.
 
 ## Example automation
 
@@ -114,15 +122,16 @@ automation:
 
 ## Diagnostics
 
-Download diagnostics from the integration page. Pairing codes, passcodes, fabric and node IDs, the Matter Hub URL and credentials are redacted.
+Download diagnostics from the integration page. Pairing codes, QR payloads, passcodes, discriminators, fabric and node IDs, the Matter Hub URL and credentials are removed. A QR payload is removed even if Matter Hub adds it under a new name.
 
 ## Troubleshooting
 
-* **"The Matter Hub app is not running"**: start the app, then retry setup. While the app is stopped, the entities show as unavailable and come back on their own.
-* **Repair says the Matter Hub app isn't available**: start the app under **Settings → Apps**. If you uninstalled it or moved Matter Hub, choose **Reconfigure** on the integration.
-* **A bridge you deleted in Matter Hub is still listed**: its device is removed after about a minute and a half, once Matter Hub has left it out of three updates in a row.
+* **Repair says Matter Bridge needs a URL**: this setup used the old app connection. Enter the Matter Hub address in the repair (for the app, usually `http://homeassistant.local:8482`). The devices and entities stay.
+* **Failed to connect**: check the address opens the Matter Hub web interface in a browser on the same network as Home Assistant. For the app, confirm it is started and that you are using port 8482, or the port you set.
+* **A bridge you deleted in Matter Hub is still listed**: its service is removed after about a minute and a half, once Matter Hub has left it out of three successful updates in a row. An update that fails does not count.
+* **A bridge you added again has no entities**: they come back on the next update after the old service was removed. Give it a couple of minutes.
 * **Asked for a username and password after setup**: authentication was turned on in Matter Hub. Enter the same credentials in the repair prompt.
-* **Docker install not reachable**: make sure the address opens the Matter Hub UI in a browser on the same network as Home Assistant.
+* **Where is the pairing code?**: open Matter Hub with the **Visit** link on the Matter Hub or bridge service, and read the code there. It is not an entity in Home Assistant. Don't share it.
 
 ### Diagnostics and debug logs
 

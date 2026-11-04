@@ -9,10 +9,9 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import MatterHubAppError, MatterHubAuthError, MatterHubClient, MatterHubError
+from .api import MatterHubAuthError, MatterHubClient, MatterHubError
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,33 +57,14 @@ class MatterHubCoordinator(DataUpdateCoordinator[MatterHubData]):
             bridges = await self.client.async_get_bridges()
         except MatterHubAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
-        except MatterHubAppError as err:
-            # The app was stopped or uninstalled: say so under Repairs.
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                self.app_issue_id,
-                is_fixable=False,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="app_unavailable",
-                translation_placeholders={
-                    "title": self.config_entry.title,
-                    "error": str(err),
-                },
-            )
-            raise UpdateFailed(str(err)) from err
         except MatterHubError as err:
+            # Leave the previous data in place. Listeners still run, and they
+            # must not treat this poll as a picture of which bridges exist.
             raise UpdateFailed(str(err)) from err
-        ir.async_delete_issue(self.hass, DOMAIN, self.app_issue_id)
         return MatterHubData(
             health=health,
             bridges={b["id"]: b for b in bridges if isinstance(b, dict) and "id" in b},
         )
-
-    @property
-    def app_issue_id(self) -> str:
-        """Repair issue id for this entry's Matter Hub app."""
-        return f"app_unavailable_{self.config_entry.entry_id}"
 
     async def async_bridge_action(self, bridge_id: str, action: str) -> None:
         """Run a bridge action, then refresh so entities update right away."""

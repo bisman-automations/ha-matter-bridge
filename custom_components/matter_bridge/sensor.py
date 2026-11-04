@@ -113,13 +113,9 @@ BRIDGE_SENSORS: tuple[BridgeSensorDescription, ...] = (
             }
         },
     ),
-    BridgeSensorDescription(
-        key="pairing_code",
-        translation_key="pairing_code",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda b: _commissioning(b).get("manualPairingCode"),
-        attrs_fn=lambda b: {"qr_code": _commissioning(b).get("qrPairingCode")},
-    ),
+    # No pairing-code sensor. manualPairingCode and qrPairingCode would be
+    # readable by anyone who can read states. The code stays in the Matter
+    # Hub web interface, opened from the service's configuration URL.
 )
 
 

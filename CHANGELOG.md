@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-11-04
+
+This is a major release because the Matter Hub app connection and the Pairing code sensor are gone. Every other entity, and the devices already created for an integration entry, stay.
+
+### Removed
+
+- **The Matter Hub app connection.** Matter Bridge no longer opens a Home Assistant ingress session. Ingress sessions belong to a logged-in user, and creating one from an integration bypassed the app's access model. Enter the Matter Hub address instead. The app uses the host network and port 8482, so on this system that is usually `http://homeassistant.local:8482`, or the IP address of this Home Assistant on that port if the name does not resolve. Docker and standalone installs use the same URL field.
+- **Pairing code sensor.** The manual pairing code and the QR payload are no longer an entity state or attribute. Anyone who can read states could have used them to add the bridge to their own controller. Open the code in the Matter Hub web interface; the **Visit** link on the Matter Hub or bridge service opens it.
+
+### Changed
+
+- **An existing app setup asks for a URL instead of failing quietly.** The integration entry is not loaded, and a repair under **Settings → System → Repairs** asks for the address. Submitting it keeps that entry, so the devices, entity names and automations stay. **Reconfigure** does the same.
+
+### Fixed
+
+- **A bridge that was removed and later added again gets its entities back.** Home Assistant drops a bridge service only after three successful updates that leave it out, and an update that cannot reach Matter Hub does not count and does not reset that count.
+
 ## [1.2.0] - 2026-10-30
 
 ### Changed
@@ -57,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Diagnostics with pairing codes, fabric IDs and credentials redacted.
   - Tests, Hassfest and HACS validation, and draft releases from CHANGELOG.md.
 
+[2.0.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.0.0...v1.1.0
