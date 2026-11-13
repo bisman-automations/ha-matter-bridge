@@ -134,7 +134,9 @@ def build_connection_data(
             data[key] = value
         elif keep_blank_credentials and previous and previous.get(key):
             data[key] = previous[key]
-    if app is not None and not data.get(CONF_USERNAME):
+    # The app's local password is for user hamh. Without a password the app
+    # may be open to the host, so no username is sent either.
+    if app is not None and data.get(CONF_PASSWORD) and not data.get(CONF_USERNAME):
         data[CONF_USERNAME] = APP_USERNAME
     return data
 

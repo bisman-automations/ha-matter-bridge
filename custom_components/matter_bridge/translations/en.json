@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect to Matter Hub",
-        "description": "Using the Matter Hub app on this Home Assistant: in the app's Configuration tab, set a Local API password (Alpha 2.1.0-alpha.990 or newer) and restart the app. Then leave the URL blank and enter that password; the user name is hamh unless you enter another.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\nInstalling Matter Hub: {project_url}.",
+        "description": "Using the Matter Hub app on this Home Assistant (Alpha app for now): in the app's Configuration tab, turn on Allow local access, optionally set a Local API password, and restart the app. Then leave the URL blank, and enter that password if you set one; the user name hamh is filled in.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\nInstalling Matter Hub: {project_url}.",
         "data": {
           "url": "URL (leave blank for the app on this Home Assistant)",
           "app": "Matter Hub app",
@@ -13,13 +13,13 @@
         "data_description": {
           "url": "Only needed for Matter Hub in Docker or on another computer.",
           "app": "Which installed Matter Hub app to use when the URL is blank.",
-          "username": "Leave blank for the app (hamh). For Docker, the username set in Matter Hub, if any.",
-          "password": "The app's Local API password, or the password set in Matter Hub."
+          "username": "Leave blank for the app (hamh is used when you enter a password). For Docker, the username set in Matter Hub, if any.",
+          "password": "The app's Local API password if you set one, or the password set in Matter Hub."
         }
       },
       "reconfigure": {
         "title": "Update Matter Hub connection",
-        "description": "Using the Matter Hub app on this Home Assistant: in the app's Configuration tab, set a Local API password (Alpha 2.1.0-alpha.990 or newer) and restart the app. Then leave the URL blank and enter that password; the user name is hamh unless you enter another.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\n{credential_hint} See {project_url}.",
+        "description": "Using the Matter Hub app on this Home Assistant (Alpha app for now): in the app's Configuration tab, turn on Allow local access, optionally set a Local API password, and restart the app. Then leave the URL blank, and enter that password if you set one; the user name hamh is filled in.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\n{credential_hint} See {project_url}.",
         "data": {
           "url": "URL (leave blank for the app on this Home Assistant)",
           "app": "Matter Hub app",
@@ -29,8 +29,8 @@
         "data_description": {
           "url": "Only needed for Matter Hub in Docker or on another computer.",
           "app": "Which installed Matter Hub app to use when the URL is blank.",
-          "username": "Leave blank for the app (hamh). For Docker, the username set in Matter Hub, if any.",
-          "password": "The app's Local API password, or the password set in Matter Hub."
+          "username": "Leave blank for the app (hamh is used when you enter a password). For Docker, the username set in Matter Hub, if any.",
+          "password": "The app's Local API password if you set one, or the password set in Matter Hub."
         }
       },
       "reauth_confirm": {
@@ -46,7 +46,7 @@
       "cannot_connect": "Failed to connect",
       "invalid_auth": "Invalid authentication",
       "unknown": "Unexpected error",
-      "forbidden": "Matter Hub refused this connection. For the Matter Hub app, set a Local API password in the app's Configuration tab (Alpha 2.1.0-alpha.990 or newer) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant.",
+      "forbidden": "Matter Hub refused this connection. For the Matter Hub app, turn on Allow local access in the app's Configuration tab (Alpha app for now) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant.",
       "no_app": "No Matter Hub app was found on this Home Assistant. Enter the address of your Matter Hub."
     },
     "abort": {
@@ -137,7 +137,7 @@
         "step": {
           "init": {
             "title": "Enter the Matter Hub address",
-            "description": "Matter Bridge no longer reaches {title} through a Home Assistant ingress session, so the integration is not loaded. Ingress sessions belong to a logged-in user, and an integration cannot create one.\n\nConnect it again to keep using this same integration. Its devices, entity names and automations stay.\n\nUsing the Matter Hub app on this Home Assistant: in the app's Configuration tab, set a Local API password (Alpha 2.1.0-alpha.990 or newer) and restart the app. Then leave the URL blank and enter that password; the user name is hamh unless you enter another.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\nLeave the username and password blank to keep ones already saved. See {project_url}.",
+            "description": "Matter Bridge no longer reaches {title} through a Home Assistant ingress session, so the integration is not loaded. Ingress sessions belong to a logged-in user, and an integration cannot create one.\n\nConnect it again to keep using this same integration. Its devices, entity names and automations stay.\n\nUsing the Matter Hub app on this Home Assistant (Alpha app for now): in the app's Configuration tab, turn on Allow local access, optionally set a Local API password, and restart the app. Then leave the URL blank, and enter that password if you set one; the user name hamh is filled in.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\nLeave the username and password blank to keep ones already saved. See {project_url}.",
             "data": {
               "url": "URL (leave blank for the app on this Home Assistant)",
               "app": "Matter Hub app",
@@ -147,8 +147,8 @@
             "data_description": {
               "url": "Only needed for Matter Hub in Docker or on another computer.",
               "app": "Which installed Matter Hub app to use when the URL is blank.",
-              "username": "Leave blank for the app (hamh). For Docker, the username set in Matter Hub, if any.",
-              "password": "The app's Local API password, or the password set in Matter Hub."
+              "username": "Leave blank for the app (hamh is used when you enter a password). For Docker, the username set in Matter Hub, if any.",
+              "password": "The app's Local API password if you set one, or the password set in Matter Hub."
             }
           }
         },
@@ -157,7 +157,7 @@
           "invalid_auth": "Invalid authentication",
           "unknown": "Unexpected error",
           "already_configured": "Another Matter Bridge entry already uses this address.",
-          "forbidden": "Matter Hub refused this connection. For the Matter Hub app, set a Local API password in the app's Configuration tab (Alpha 2.1.0-alpha.990 or newer) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant.",
+          "forbidden": "Matter Hub refused this connection. For the Matter Hub app, turn on Allow local access in the app's Configuration tab (Alpha app for now) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant.",
           "no_app": "No Matter Hub app was found on this Home Assistant. Enter the address of your Matter Hub."
         },
         "abort": {

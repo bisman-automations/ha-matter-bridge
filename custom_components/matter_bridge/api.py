@@ -3,9 +3,9 @@
 Matter Hub is reached at a URL (``http://host:8482`` by default). That covers
 Docker and standalone installs. The Matter Hub app by default only lets the
 Supervisor in (``--http-ip-whitelist=172.30.32.2``, everything else gets 403).
-From 2.1.0-alpha.990 its ``local_api_password`` option also allows loopback,
-with Basic auth as user ``hamh``, at ``http://127.0.0.1:<ingress port>`` (the
-app logs the port at startup). A 403 is ``MatterHubForbiddenError``.
+Its ``allow_local_access`` option also allows loopback at
+``http://127.0.0.1:<ingress port>``, with Basic auth as user ``hamh`` when
+``local_api_password`` is set (``app.py`` finds the port). A 403 is ``MatterHubForbiddenError``.
 
 There is no Supervisor transport. Ingress sessions belong to a logged-in
 user's frontend; an integration must not mint one with the Supervisor token.

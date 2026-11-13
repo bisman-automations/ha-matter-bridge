@@ -1,8 +1,9 @@
 """Find the Matter Hub app on this Home Assistant.
 
-From 2.1.0-alpha.990 the app's ``local_api_password`` option lets processes
-on the host reach its API at ``http://127.0.0.1:<ingress port>`` with Basic
-auth as user ``hamh`` (RiDDiX/home-assistant-matter-hub#551). The ingress
+The app's ``allow_local_access`` option (Alpha, after 2.1.0-alpha.990, which
+used ``local_api_password`` alone) lets processes on the host reach its API at
+``http://127.0.0.1:<ingress port>``; with ``local_api_password`` set they use
+Basic auth as user ``hamh`` (RiDDiX/home-assistant-matter-hub#551). The ingress
 port is assigned by the Supervisor (``ingress_port: 0``), so it differs per
 install. Home Assistant's own Supervisor integration already keeps every
 app's info, including that port; this module only reads it through

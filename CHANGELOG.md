@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Use the Matter Hub app on this Home Assistant.** Matter Hub's Alpha app (2.1.0-alpha.990 and newer) has a **Local API password** option that lets Home Assistant connect. Set it, restart the app, then add Matter Bridge with the URL left blank and that password. Matter Bridge finds the app and its port, fills in the user name `hamh`, and follows the port if the app is reinstalled. With more than one Matter Hub app installed, setup asks which one. Stable and Testing get the option in a later Matter Hub release.
+- **Use the Matter Hub app on this Home Assistant.** Matter Hub's Alpha app now has an **Allow local access** option, with an optional **Local API password**, that lets Home Assistant connect. Turn it on, restart the app, then add Matter Bridge with the URL left blank (and the password, if you set one). Matter Bridge finds the app and its port, fills in the user name `hamh` when you give a password, and follows the port if the app is reinstalled. With more than one Matter Hub app installed, setup asks which one. Stable and Testing get the option in a later Matter Hub release.
 - **Repairing a setup from before 2.0.0** with the URL left blank reconnects it to the same Matter Hub app, keeping its devices and entities.
 
 ### Changed

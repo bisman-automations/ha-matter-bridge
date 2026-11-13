@@ -108,6 +108,19 @@ async def test_blank_url_uses_the_app(
     assert str(request[1]) == f"{APP_URL}/api/health"
 
 
+async def test_blank_url_without_password_sends_no_user(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, health, bridges
+) -> None:
+    """Local access without a password: no username either."""
+    mock_app(aioclient_mock, health, bridges)
+    with apps({SLUG: _info("Home Assistant Matter Hub", PORT)}):
+        result = await _user_flow(hass, {})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert CONF_USERNAME not in result["data"]
+    assert CONF_PASSWORD not in result["data"]
+    assert result["data"][CONF_URL] == APP_URL
+
+
 async def test_blank_url_without_app(hass: HomeAssistant) -> None:
     with apps({}):
         result = await _user_flow(hass, {CONF_PASSWORD: "x"})
