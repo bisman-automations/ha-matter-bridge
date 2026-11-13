@@ -48,8 +48,7 @@ def configuration_url(entry: MatterBridgeConfigEntry) -> str | None:
     """The Matter Hub web interface.
 
     Pairing codes are shown there, not on an entity. Home Assistant opens
-    this as the service's Visit link. It is always a normal URL, including
-    for the Matter Hub app (host network, port 8482).
+    this as the service's Visit link. It is always the URL the entry uses.
     """
     return entry.data.get(CONF_URL)
 

@@ -1,8 +1,10 @@
 """Client for the Home Assistant Matter Hub REST API.
 
 Matter Hub is reached at a URL (``http://host:8482`` by default). That covers
-Docker and standalone installs, and the Matter Hub app: the app uses the host
-network, so its web interface is on this system's hostname and port 8482.
+Docker and standalone installs. The Matter Hub app can't be reached this way:
+its start script passes ``--http-ip-whitelist=172.30.32.2`` (the Supervisor
+only), so anything else gets 403, and its web port is the Supervisor-assigned
+ingress port (``ingress_port: 0``). A 403 is ``MatterHubForbiddenError``.
 
 There is no Supervisor transport. Ingress sessions belong to a logged-in
 user's frontend; an integration must not mint one with the Supervisor token.
@@ -38,6 +40,14 @@ class MatterHubConnectionError(MatterHubError):
 
 class MatterHubAuthError(MatterHubError):
     """Matter Hub rejected the credentials."""
+
+
+class MatterHubForbiddenError(MatterHubError):
+    """Matter Hub refused this address (its IP allow list).
+
+    The Matter Hub app only lets the Supervisor in, so a password can't fix
+    this; it isn't an authentication error.
+    """
 
 
 class MatterHubCommandError(MatterHubError):
@@ -109,7 +119,9 @@ class DirectTransport:
         ):
             raise MatterHubAuthError("Matter Hub rejected the username or password")
         if status == 403:
-            raise MatterHubAuthError("Matter Hub refused access (IP allow list)")
+            raise MatterHubForbiddenError(
+                "Matter Hub refused this connection (its IP allow list)"
+            )
         message = body.get("error") if isinstance(body, dict) else None
         if status == 404:
             raise MatterHubCommandError(message or "Not found")

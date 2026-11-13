@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-11-13
+
+### Fixed
+
+- **Setup no longer sends Matter Hub app users to port 8482.** The Matter Hub app (Stable, Alpha or Testing) only lets Home Assistant's Supervisor connect, and its port is chosen by the Supervisor, so it can't be added by address. Setup, Reconfigure and the repair now say so. Matter Hub in Docker or standalone works as before.
+- **A clear message when Matter Hub refuses the connection.** Instead of **Invalid authentication**, setup says Matter Hub refused it and why, and an existing entry no longer asks for a new password when that happens.
+- **The address field starts empty**, with an example in the text, instead of an address that doesn't work for the app.
+
 ## [2.0.1] - 2026-11-10
 
 ### Changed
@@ -81,6 +89,7 @@ This is a major release because the Matter Hub app connection and the Pairing co
   - Diagnostics with pairing codes, fabric IDs and credentials redacted.
   - Tests, Hassfest and HACS validation, and draft releases from CHANGELOG.md.
 
+[2.0.2]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.1.1...v1.2.0

@@ -58,8 +58,7 @@ async def test_user_flow(
         == "https://github.com/RiDDiX/home-assistant-matter-hub"
     )
     assert (
-        result["description_placeholders"]["example_url"]
-        == "http://homeassistant.local:8482"
+        result["description_placeholders"]["example_url"] == "http://192.168.1.20:8482"
     )
 
     result = await hass.config_entries.flow.async_configure(
@@ -95,6 +94,8 @@ async def test_user_flow_ignores_supervisor_token(
             },
             "invalid_auth",
         ),
+        # The Matter Hub app only lets the Supervisor in: a password won't help.
+        ({"status": HTTPStatus.FORBIDDEN}, "forbidden"),
     ],
 )
 async def test_user_flow_errors(

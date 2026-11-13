@@ -23,7 +23,7 @@ from .config_flow import (
     other_entry_has_unique_id,
     url_unique_id,
 )
-from .const import DEFAULT_URL, DOMAIN, MATTER_HUB_URL, ingress_removed_issue_id
+from .const import DOMAIN, EXAMPLE_URL, MATTER_HUB_URL, ingress_removed_issue_id
 
 
 class IngressRemovedRepairFlow(RepairsFlow):
@@ -71,7 +71,7 @@ class IngressRemovedRepairFlow(RepairsFlow):
                 await self.hass.config_entries.async_reload(entry.entry_id)
                 return self.async_create_entry(data={})
 
-        suggested: dict[str, Any] = {CONF_URL: DEFAULT_URL}
+        suggested: dict[str, Any] = {}
         if username := entry.data.get(CONF_USERNAME):
             suggested[CONF_USERNAME] = username
         if user_input:
@@ -83,7 +83,7 @@ class IngressRemovedRepairFlow(RepairsFlow):
             ),
             errors=errors,
             description_placeholders={
-                "example_url": DEFAULT_URL,
+                "example_url": EXAMPLE_URL,
                 "project_url": MATTER_HUB_URL,
                 "title": entry.title,
             },

@@ -3,8 +3,9 @@
 Every connection is a URL. The Matter Hub app does not publish Supervisor
 discovery (its add-on config has no ``discovery:`` key; checked in
 RiDDiX/home-assistant-addons for hamh, hamh-alpha and hamh-testing), so there
-is no ``async_step_hassio``. The app uses the host network and port 8482,
-which the URL step explains.
+is no ``async_step_hassio``. The app also only lets the Supervisor connect
+(see ``api.py``), so the forms say it can't be added yet; a 403 shows the
+``forbidden`` error.
 
 Entries saved by 1.x with ``connection: app`` are not a step in this flow.
 Setup raises, and the repair in ``repairs.py`` (or Reconfigure) turns them
@@ -31,13 +32,18 @@ from homeassistant.helpers.selector import (
 )
 
 from . import create_transport
-from .api import MatterHubAuthError, MatterHubClient, MatterHubError
+from .api import (
+    MatterHubAuthError,
+    MatterHubClient,
+    MatterHubError,
+    MatterHubForbiddenError,
+)
 from .const import (
     CONF_CONNECTION,
     CONNECTION_APP,
     CONNECTION_DIRECT,
-    DEFAULT_URL,
     DOMAIN,
+    EXAMPLE_URL,
     MATTER_HUB_URL,
     ingress_removed_issue_id,
 )
@@ -141,6 +147,8 @@ async def async_validate_connection(
         await client.async_get_bridges()
     except MatterHubAuthError:
         return {"base": "invalid_auth"}
+    except MatterHubForbiddenError:
+        return {"base": "forbidden"}
     except MatterHubError:
         return {"base": "cannot_connect"}
     except Exception:
@@ -172,11 +180,11 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=self.add_suggested_values_to_schema(
-                connection_schema(default_url=DEFAULT_URL), user_input
+                connection_schema(), user_input
             ),
             errors=errors,
             description_placeholders={
-                "example_url": DEFAULT_URL,
+                "example_url": EXAMPLE_URL,
                 "project_url": MATTER_HUB_URL,
             },
         )
@@ -223,8 +231,6 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
             for key, value in entry.data.items()
             if key in (CONF_URL, CONF_USERNAME)
         }
-        if legacy and CONF_URL not in suggested:
-            suggested = {CONF_URL: DEFAULT_URL, **suggested}
         credential_hint = (
             "Leave the username and password blank to keep ones already saved."
             if legacy
@@ -238,7 +244,7 @@ class MatterBridgeConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
             description_placeholders={
                 "credential_hint": credential_hint,
-                "example_url": DEFAULT_URL,
+                "example_url": EXAMPLE_URL,
                 "project_url": MATTER_HUB_URL,
             },
         )

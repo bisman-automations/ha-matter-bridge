@@ -16,7 +16,10 @@ CONF_APP_SLUG: Final = "app_slug"
 CONNECTION_APP: Final = "app"
 CONNECTION_DIRECT: Final = "direct"
 
-DEFAULT_URL: Final = "http://homeassistant.local:8482"
+# An example for the forms' text (the field itself starts empty). The Matter
+# Hub app isn't reachable by address (it only lets the Supervisor in); Docker
+# and standalone installs use port 8482.
+EXAMPLE_URL: Final = "http://192.168.1.20:8482"
 DEFAULT_SCAN_INTERVAL: Final = timedelta(seconds=30)
 REQUEST_TIMEOUT: Final = 15
 

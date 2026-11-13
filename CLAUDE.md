@@ -13,7 +13,7 @@ Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2026.8.0).
 
 | Path | What it is |
 | --- | --- |
-| `api.py` | The Matter Hub REST client. One transport: a URL (default port 8482), for Docker, standalone, and the Matter Hub app. The app uses the host network, so the URL is this system's hostname and port 8482. There is no Supervisor or ingress client. |
+| `api.py` | The Matter Hub REST client. One transport: a URL (default port 8482), for Docker and standalone. The Matter Hub app can't be reached that way: its start script passes `--http-ip-whitelist=172.30.32.2` (the Supervisor only, everything else gets 403) and its web port is the Supervisor-assigned ingress port (`ingress_port: 0`). A 403 is `MatterHubForbiddenError` (form error `forbidden`, not reauth). There is no Supervisor or ingress client. |
 | `config_flow.py` | Setup asks for that URL and optional username and password. Reconfigure and reauth. No `async_step_hassio`: the Matter Hub add-on configs (`hamh`, `hamh-alpha`, `hamh-testing` in RiDDiX/home-assistant-addons) do not set `discovery:`. |
 | `repairs.py` | Fix flow for a 1.x entry with `connection: app`. It asks for a URL, writes it onto the same entry and reloads, so device and entity unique ids stay. |
 | `coordinator.py` | Polls health and the bridge list every 30 seconds (`DEFAULT_SCAN_INTERVAL`). |

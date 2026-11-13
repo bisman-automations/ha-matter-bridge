@@ -18,7 +18,7 @@ Matter Hub does the Matter work: it publishes your Home Assistant entities to Ap
 ## Requirements
 
 * Home Assistant 2026.8 or newer
-* Home Assistant Matter Hub, reachable over the network at its web interface (port 8482 by default). That is the Matter Hub app on Home Assistant OS or Supervised, or Matter Hub in Docker or standalone.
+* Home Assistant Matter Hub in Docker or standalone, reachable over the network at its web interface (port 8482 by default). The Matter Hub app (Stable, Alpha or Testing) can't be added yet; see below.
 
 ## Installation
 
@@ -61,16 +61,9 @@ Or go to **Settings → Devices & services → Add integration → Matter Bridge
 
 Setup asks for the address of the Matter Hub web interface.
 
-### Connecting to the Matter Hub app
+### The Matter Hub app can't be added yet
 
-The app uses the host network. It does not get its own hostname on the Supervisor network, and this integration does not open a Home Assistant ingress session. Unless you changed the port, the web interface is on port **8482**. Enter one of these:
-
-* `http://homeassistant.local:8482`
-* the IP address of this Home Assistant, on port 8482, if that name does not resolve
-
-Open the Matter Hub panel in the sidebar if you want to confirm the port. The address above is what you put in the URL field; the panel and the integration are separate.
-
-The app does not publish Supervisor discovery, so the address is entered by hand. The stable, alpha and testing channels of the app all use the same host and port.
+The Matter Hub app (Stable, Alpha or Testing) only lets Home Assistant's Supervisor connect to its web interface, so the sidebar panel works but nothing else can reach it, including this integration. Its port is also chosen by the Supervisor, not fixed. Setup shows **Matter Hub refused this connection** or **Failed to connect**. This needs a change in the Matter Hub app; it will work once the app lets Home Assistant connect.
 
 ### Connecting to Docker or standalone Matter Hub
 
@@ -135,8 +128,9 @@ Download diagnostics from the integration page. Pairing codes, QR payloads, pass
 
 ## Troubleshooting
 
-* **Repair says Matter Bridge needs a URL**: this setup used the old app connection. Enter the Matter Hub address in the repair (for the app, usually `http://homeassistant.local:8482`). The devices and entities stay.
-* **Failed to connect**: check the address opens the Matter Hub web interface in a browser on the same network as Home Assistant. For the app, confirm it is started and that you are using port 8482, or the port you set.
+* **Repair says Matter Bridge needs a URL**: this setup used the old app connection. Enter the address of a Matter Hub in Docker or standalone in the repair; the devices and entities stay. The Matter Hub app can't be added yet (see above).
+* **Failed to connect**: check the address opens the Matter Hub web interface in a browser on the same network as Home Assistant, on port 8482 or the port you set.
+* **Matter Hub refused this connection**: Matter Hub's IP allow list doesn't include this Home Assistant. The Matter Hub app always refuses (see above); for Docker or standalone, add this Home Assistant's address to its allow list.
 * **A bridge you deleted in Matter Hub is still listed**: its service is removed after about a minute and a half, once Matter Hub has left it out of three successful updates in a row. An update that fails does not count.
 * **A bridge you added again has no entities**: they come back on the next update after the old service was removed. Give it a couple of minutes.
 * **Asked for a username and password after setup**: authentication was turned on in Matter Hub. Enter the same credentials in the repair prompt.
