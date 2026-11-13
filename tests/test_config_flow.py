@@ -73,7 +73,7 @@ async def test_user_flow(
 async def test_user_flow_ignores_supervisor_token(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, monkeypatch
 ) -> None:
-    """A Supervisor token does not start an app lookup or an ingress session."""
+    """A Supervisor token alone does not contact anything or start an ingress session."""
     monkeypatch.setenv("SUPERVISOR_TOKEN", "core-token")
     monkeypatch.setenv("SUPERVISOR", "supervisor")
     result = await hass.config_entries.flow.async_init(

@@ -1,10 +1,11 @@
 """Client for the Home Assistant Matter Hub REST API.
 
 Matter Hub is reached at a URL (``http://host:8482`` by default). That covers
-Docker and standalone installs. The Matter Hub app can't be reached this way:
-its start script passes ``--http-ip-whitelist=172.30.32.2`` (the Supervisor
-only), so anything else gets 403, and its web port is the Supervisor-assigned
-ingress port (``ingress_port: 0``). A 403 is ``MatterHubForbiddenError``.
+Docker and standalone installs. The Matter Hub app by default only lets the
+Supervisor in (``--http-ip-whitelist=172.30.32.2``, everything else gets 403).
+From 2.1.0-alpha.990 its ``local_api_password`` option also allows loopback,
+with Basic auth as user ``hamh``, at ``http://127.0.0.1:<ingress port>`` (the
+app logs the port at startup). A 403 is ``MatterHubForbiddenError``.
 
 There is no Supervisor transport. Ingress sessions belong to a logged-in
 user's frontend; an integration must not mint one with the Supervisor token.
@@ -45,8 +46,8 @@ class MatterHubAuthError(MatterHubError):
 class MatterHubForbiddenError(MatterHubError):
     """Matter Hub refused this address (its IP allow list).
 
-    The Matter Hub app only lets the Supervisor in, so a password can't fix
-    this; it isn't an authentication error.
+    The Matter Hub app without a local API password only lets the Supervisor
+    in, so a password can't fix this; it isn't an authentication error.
     """
 
 

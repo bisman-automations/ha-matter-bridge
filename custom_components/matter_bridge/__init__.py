@@ -16,7 +16,9 @@ from homeassistant.helpers import (
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import DirectTransport, MatterHubClient, MatterHubError
+from .app import find_app
 from .const import (
+    CONF_ADDON,
     CONF_CONNECTION,
     CONNECTION_APP,
     DOMAIN,
@@ -94,6 +96,23 @@ def _async_clear_stale_issues(hass: HomeAssistant, entry_id: str) -> None:
     ir.async_delete_issue(hass, DOMAIN, app_unavailable_issue_id(entry_id))
 
 
+@callback
+def _async_follow_app_port(hass: HomeAssistant, entry: MatterBridgeConfigEntry) -> None:
+    """Point an app entry at the app's current port.
+
+    The Supervisor assigns the Matter Hub app's port. It normally keeps it,
+    but a reinstall gets a new one. When the app isn't found (no Supervisor
+    info yet, or the app was removed) the saved address is kept.
+    """
+    slug = entry.data.get(CONF_ADDON)
+    if not slug or (app := find_app(hass, str(slug))) is None:
+        return
+    if entry.data.get(CONF_URL) != app.url:
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, CONF_URL: app.url}
+        )
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: MatterBridgeConfigEntry
 ) -> bool:
@@ -123,6 +142,7 @@ async def async_setup_entry(
         )
 
     ir.async_delete_issue(hass, DOMAIN, ingress_removed_issue_id(entry.entry_id))
+    _async_follow_app_port(hass, entry)
 
     client = MatterHubClient(create_transport(hass, dict(entry.data)))
     coordinator = MatterHubCoordinator(hass, entry, client)

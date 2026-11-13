@@ -18,7 +18,7 @@ Matter Hub does the Matter work: it publishes your Home Assistant entities to Ap
 ## Requirements
 
 * Home Assistant 2026.8 or newer
-* Home Assistant Matter Hub in Docker or standalone, reachable over the network at its web interface (port 8482 by default). The Matter Hub app (Stable, Alpha or Testing) can't be added yet; see below.
+* Home Assistant Matter Hub in Docker or standalone, reachable over the network at its web interface (port 8482 by default), or the Matter Hub app with a Local API password (Alpha 2.1.0-alpha.990 or newer; see below).
 
 ## Installation
 
@@ -59,15 +59,21 @@ Download `matter_bridge.zip` from the [latest release](https://github.com/bisman
 
 Or go to **Settings → Devices & services → Add integration → Matter Bridge**.
 
-Setup asks for the address of the Matter Hub web interface.
+Setup asks for the address of the Matter Hub web interface. Leave it blank to use the Matter Hub app on this Home Assistant.
 
-### The Matter Hub app can't be added yet
+### Connecting to the Matter Hub app
 
-The Matter Hub app (Stable, Alpha or Testing) only lets Home Assistant's Supervisor connect to its web interface, so the sidebar panel works but nothing else can reach it, including this integration. Its port is also chosen by the Supervisor, not fixed. Setup shows **Matter Hub refused this connection** or **Failed to connect**. This needs a change in the Matter Hub app; it will work once the app lets Home Assistant connect.
+The Matter Hub app lets Home Assistant connect once you give it a local password. This is in the Alpha app from 2.1.0-alpha.990 and comes to Stable and Testing in a later release.
+
+1. Open the Matter Hub app's **Configuration** tab, set **Local API password** and restart the app.
+2. Add Matter Bridge. Leave **URL** blank and enter that password. Leave **Username** blank too; the app's user name, `hamh`, is filled in.
+3. If more than one Matter Hub app is installed (Stable, Alpha, Testing), pick one under **Matter Hub app**.
+
+Matter Bridge finds the app's address and port itself and follows the port if the app is reinstalled. Every program on the Home Assistant host can use this password, so pick one you don't use elsewhere. While it's set, it replaces a password set under the app's **Settings**. Without it, the app only lets the Supervisor in and setup shows **Matter Hub refused this connection**.
 
 ### Connecting to Docker or standalone Matter Hub
 
-Enter the web interface address, for example `http://192.0.2.50:8482`.
+Enter the web interface address in **URL**, for example `http://192.0.2.50:8482`.
 
 ### Username and password
 
@@ -128,9 +134,10 @@ Download diagnostics from the integration page. Pairing codes, QR payloads, pass
 
 ## Troubleshooting
 
-* **Repair says Matter Bridge needs a URL**: this setup used the old app connection. Enter the address of a Matter Hub in Docker or standalone in the repair; the devices and entities stay. The Matter Hub app can't be added yet (see above).
+* **Repair says Matter Bridge needs a URL**: this setup used the old app connection. Leave the URL blank in the repair to use the Matter Hub app again (set its Local API password first; see above), or enter the address of a Matter Hub in Docker; the devices and entities stay.
+* **No Matter Hub app was found**: the URL was left blank, but this Home Assistant has no Matter Hub app installed (or isn't a Home Assistant OS or Supervised install). Enter the address of your Matter Hub instead.
 * **Failed to connect**: check the address opens the Matter Hub web interface in a browser on the same network as Home Assistant, on port 8482 or the port you set.
-* **Matter Hub refused this connection**: Matter Hub's IP allow list doesn't include this Home Assistant. The Matter Hub app always refuses (see above); for Docker or standalone, add this Home Assistant's address to its allow list.
+* **Matter Hub refused this connection**: Matter Hub's IP allow list doesn't include this Home Assistant. For the app, set a Local API password and restart it (see above). For Docker or standalone, add this Home Assistant's address to its allow list.
 * **A bridge you deleted in Matter Hub is still listed**: its service is removed after about a minute and a half, once Matter Hub has left it out of three successful updates in a row. An update that fails does not count.
 * **A bridge you added again has no entities**: they come back on the next update after the old service was removed. Give it a couple of minutes.
 * **Asked for a username and password after setup**: authentication was turned on in Matter Hub. Enter the same credentials in the repair prompt.

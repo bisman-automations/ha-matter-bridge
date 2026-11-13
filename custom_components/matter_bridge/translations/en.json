@@ -3,20 +3,34 @@
     "step": {
       "user": {
         "title": "Connect to Matter Hub",
-        "description": "Enter the address of the Matter Hub web interface, such as {example_url}.\n\nMatter Hub in Docker or on another computer listens on port 8482 unless you changed it. Use the address and port where its web interface is published.\n\nThe Matter Hub app (Stable, Alpha or Testing) can't be added yet: it only lets Home Assistant's Supervisor connect, and its port is assigned by the Supervisor. Matter Hub running in Docker or on another computer works.\n\nA username and password are only needed when authentication is turned on in Matter Hub. Installing Matter Hub: {project_url}.",
+        "description": "Using the Matter Hub app on this Home Assistant: in the app's Configuration tab, set a Local API password (Alpha 2.1.0-alpha.990 or newer) and restart the app. Then leave the URL blank and enter that password; the user name is hamh unless you enter another.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\nInstalling Matter Hub: {project_url}.",
         "data": {
-          "url": "URL",
+          "url": "URL (leave blank for the app on this Home Assistant)",
+          "app": "Matter Hub app",
           "username": "Username",
           "password": "Password"
+        },
+        "data_description": {
+          "url": "Only needed for Matter Hub in Docker or on another computer.",
+          "app": "Which installed Matter Hub app to use when the URL is blank.",
+          "username": "Leave blank for the app (hamh). For Docker, the username set in Matter Hub, if any.",
+          "password": "The app's Local API password, or the password set in Matter Hub."
         }
       },
       "reconfigure": {
         "title": "Update Matter Hub connection",
-        "description": "Enter the Matter Hub address, such as {example_url}. The Matter Hub app (Stable, Alpha or Testing) can't be added yet: it only lets Home Assistant's Supervisor connect, and its port is assigned by the Supervisor. Matter Hub running in Docker or on another computer works. {credential_hint} See {project_url}.",
+        "description": "Using the Matter Hub app on this Home Assistant: in the app's Configuration tab, set a Local API password (Alpha 2.1.0-alpha.990 or newer) and restart the app. Then leave the URL blank and enter that password; the user name is hamh unless you enter another.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\n{credential_hint} See {project_url}.",
         "data": {
-          "url": "URL",
+          "url": "URL (leave blank for the app on this Home Assistant)",
+          "app": "Matter Hub app",
           "username": "Username",
           "password": "Password"
+        },
+        "data_description": {
+          "url": "Only needed for Matter Hub in Docker or on another computer.",
+          "app": "Which installed Matter Hub app to use when the URL is blank.",
+          "username": "Leave blank for the app (hamh). For Docker, the username set in Matter Hub, if any.",
+          "password": "The app's Local API password, or the password set in Matter Hub."
         }
       },
       "reauth_confirm": {
@@ -32,7 +46,8 @@
       "cannot_connect": "Failed to connect",
       "invalid_auth": "Invalid authentication",
       "unknown": "Unexpected error",
-      "forbidden": "Matter Hub refused this connection. The Matter Hub app only lets Home Assistant's Supervisor connect, so it can't be added here yet. Matter Hub in Docker or on another computer works; check that its IP allow list includes this Home Assistant."
+      "forbidden": "Matter Hub refused this connection. For the Matter Hub app, set a Local API password in the app's Configuration tab (Alpha 2.1.0-alpha.990 or newer) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant.",
+      "no_app": "No Matter Hub app was found on this Home Assistant. Enter the address of your Matter Hub."
     },
     "abort": {
       "already_configured": "Service is already configured",
@@ -122,11 +137,18 @@
         "step": {
           "init": {
             "title": "Enter the Matter Hub address",
-            "description": "Matter Bridge no longer reaches {title} through a Home Assistant ingress session, so the integration is not loaded. Ingress sessions belong to a logged-in user, and an integration cannot create one.\n\nEnter the Matter Hub address to keep using this same integration. Its devices, entity names and automations stay.\n\nMatter Hub in Docker or on another computer: use the address and port where its web interface is published, 8482 unless you changed it, such as {example_url}. The Matter Hub app (Stable, Alpha or Testing) can't be added yet: it only lets Home Assistant's Supervisor connect, and its port is assigned by the Supervisor. Matter Hub running in Docker or on another computer works.\n\nLeave the username and password blank to keep ones already saved. Pairing codes are shown in the Matter Hub web interface, which the link on the service opens once this is running. See {project_url}.",
+            "description": "Matter Bridge no longer reaches {title} through a Home Assistant ingress session, so the integration is not loaded. Ingress sessions belong to a logged-in user, and an integration cannot create one.\n\nConnect it again to keep using this same integration. Its devices, entity names and automations stay.\n\nUsing the Matter Hub app on this Home Assistant: in the app's Configuration tab, set a Local API password (Alpha 2.1.0-alpha.990 or newer) and restart the app. Then leave the URL blank and enter that password; the user name is hamh unless you enter another.\n\nMatter Hub in Docker or on another computer: enter its address, such as {example_url} (port 8482 unless you changed it).\n\nLeave the username and password blank to keep ones already saved. See {project_url}.",
             "data": {
-              "url": "URL",
+              "url": "URL (leave blank for the app on this Home Assistant)",
+              "app": "Matter Hub app",
               "username": "Username",
               "password": "Password"
+            },
+            "data_description": {
+              "url": "Only needed for Matter Hub in Docker or on another computer.",
+              "app": "Which installed Matter Hub app to use when the URL is blank.",
+              "username": "Leave blank for the app (hamh). For Docker, the username set in Matter Hub, if any.",
+              "password": "The app's Local API password, or the password set in Matter Hub."
             }
           }
         },
@@ -135,7 +157,8 @@
           "invalid_auth": "Invalid authentication",
           "unknown": "Unexpected error",
           "already_configured": "Another Matter Bridge entry already uses this address.",
-          "forbidden": "Matter Hub refused this connection. The Matter Hub app only lets Home Assistant's Supervisor connect, so it can't be added here yet. Matter Hub in Docker or on another computer works; check that its IP allow list includes this Home Assistant."
+          "forbidden": "Matter Hub refused this connection. For the Matter Hub app, set a Local API password in the app's Configuration tab (Alpha 2.1.0-alpha.990 or newer) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant.",
+          "no_app": "No Matter Hub app was found on this Home Assistant. Enter the address of your Matter Hub."
         },
         "abort": {
           "entry_gone": "This Matter Bridge entry was removed."

@@ -13,9 +13,10 @@ Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2026.8.0).
 
 | Path | What it is |
 | --- | --- |
-| `api.py` | The Matter Hub REST client. One transport: a URL (default port 8482), for Docker and standalone. The Matter Hub app can't be reached that way: its start script passes `--http-ip-whitelist=172.30.32.2` (the Supervisor only, everything else gets 403) and its web port is the Supervisor-assigned ingress port (`ingress_port: 0`). A 403 is `MatterHubForbiddenError` (form error `forbidden`, not reauth). There is no Supervisor or ingress client. |
-| `config_flow.py` | Setup asks for that URL and optional username and password. Reconfigure and reauth. No `async_step_hassio`: the Matter Hub add-on configs (`hamh`, `hamh-alpha`, `hamh-testing` in RiDDiX/home-assistant-addons) do not set `discovery:`. |
-| `repairs.py` | Fix flow for a 1.x entry with `connection: app`. It asks for a URL, writes it onto the same entry and reloads, so device and entity unique ids stay. |
+| `api.py` | The Matter Hub REST client. One transport: a URL (default port 8482), for Docker and standalone. The Matter Hub app by default only lets the Supervisor in (`--http-ip-whitelist=172.30.32.2`, everything else gets 403). From 2.1.0-alpha.990 (RiDDiX/home-assistant-matter-hub#551) its `local_api_password` option also allows `127.0.0.1` and `::1` with Basic auth as user `hamh`, at `http://127.0.0.1:<ingress port>`; the port is Supervisor-assigned (`ingress_port: 0`) and printed in the app's log. A 403 is `MatterHubForbiddenError` (form error `forbidden`, not reauth). There is no Supervisor or ingress client; `app.py` finds the port. |
+| `app.py` | Finds installed Matter Hub apps (slugs `<repo hash>_hamh`, `_hamh-alpha`, `_hamh-testing`) and their ingress port from `hassio.get_addons_info`, the info core's Supervisor integration already keeps (`after_dependencies: hassio`). Read only: no Supervisor calls, no ingress session. |
+| `config_flow.py` | Setup asks for an optional URL and optional username and password. A blank URL uses the Matter Hub app on this host (`http://127.0.0.1:<port>`, user `hamh` unless typed, data key `addon` = slug, unique id `app_<slug>`); a choice appears when more than one app is installed, and no app is the `no_app` error. Setup re-reads the app's port and updates the URL if it changed. Reconfigure and reauth. No `async_step_hassio`: the Matter Hub add-on configs (`hamh`, `hamh-alpha`, `hamh-testing` in RiDDiX/home-assistant-addons) do not set `discovery:`. |
+| `repairs.py` | Fix flow for a 1.x entry with `connection: app`. It asks for a URL (blank: the app on this host), writes it onto the same entry and reloads, so device and entity unique ids stay. |
 | `coordinator.py` | Polls health and the bridge list every 30 seconds (`DEFAULT_SCAN_INTERVAL`). |
 | `entity.py` | The Matter Hub device and one device per bridge, both with `entry_type` service (they are software, not hardware). Build them from keyword arguments (`hub_device_fields`), never by unpacking or changing a `DeviceInfo`, which is a dataclass from 2026.11. Unique IDs are `<entry_id>_<key>` and `<entry_id>_<bridge_id>_<key>`. |
 | `sensor.py`, `binary_sensor.py`, `switch.py`, `button.py` | Entities. Enum sensors use `BRIDGE_STATUSES` and `HEALTH_STATUSES` in `const.py`. |
@@ -36,8 +37,10 @@ Oldest supported Home Assistant: `hacs.json` → `homeassistant` (2026.8.0).
   `configuration_url`.
 - **1.x app entries.** `connection: app` is refused in `async_setup_entry`
   with `ConfigEntryError` (`ingress_removed`) and a fixable repair. Do not
-  mint an ingress session or call the Supervisor API. The repair keeps the
-  entry id.
+  mint an ingress session or call the Supervisor API (reading
+  `get_addons_info` in `app.py` is the only Supervisor data used). The repair
+  keeps the entry id; a blank URL there uses the app in the entry's old
+  `app_slug` when it's still installed.
 - Use RFC 5737 addresses (`192.0.2.x`) and made-up slugs in tests, as
   `tests/conftest.py` does.
 - The Matter Hub API isn't versioned. Read responses leniently (missing keys,

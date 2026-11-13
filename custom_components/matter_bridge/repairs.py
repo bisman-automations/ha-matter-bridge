@@ -15,13 +15,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import issue_registry as ir
 
+from .app import find_apps
 from .config_flow import (
     async_validate_connection,
     build_connection_data,
     connection_schema,
     entry_title,
+    entry_unique_id,
     other_entry_has_unique_id,
-    url_unique_id,
+    pick_app,
 )
 from .const import DOMAIN, EXAMPLE_URL, MATTER_HUB_URL, ingress_removed_issue_id
 
@@ -41,16 +43,21 @@ class IngressRemovedRepairFlow(RepairsFlow):
             return self.async_abort(reason="entry_gone")
 
         # The repairs flow calls this step first with {"issue_id": ...}.
-        # That is not the form. A submission always includes the URL.
-        if user_input is not None and CONF_URL not in user_input:
+        # That is not the form (whose fields are all optional).
+        if user_input is not None and "issue_id" in user_input:
             user_input = None
 
         errors: dict[str, str] = {}
+        app = None
         if user_input is not None:
+            # A blank URL uses the Matter Hub app on this host, preferring the
+            # one this 1.x entry was set up with.
+            app, errors = pick_app(self.hass, user_input, entry.data)
+        if user_input is not None and not errors:
             data = build_connection_data(
-                user_input, previous=entry.data, keep_blank_credentials=True
+                user_input, previous=entry.data, keep_blank_credentials=True, app=app
             )
-            unique_id = url_unique_id(data[CONF_URL])
+            unique_id = entry_unique_id(data)
             if other_entry_has_unique_id(self.hass, unique_id, entry.entry_id):
                 errors = {"base": "already_configured"}
             else:
@@ -66,7 +73,7 @@ class IngressRemovedRepairFlow(RepairsFlow):
                     entry,
                     data=data,
                     unique_id=unique_id,
-                    title=entry_title(data[CONF_URL]),
+                    title=entry_title(data[CONF_URL], app),
                 )
                 await self.hass.config_entries.async_reload(entry.entry_id)
                 return self.async_create_entry(data={})
@@ -79,7 +86,7 @@ class IngressRemovedRepairFlow(RepairsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
-                connection_schema(), suggested
+                connection_schema(find_apps(self.hass)), suggested
             ),
             errors=errors,
             description_placeholders={

@@ -13,12 +13,16 @@ CONF_CONNECTION: Final = "connection"
 # refuses it and a repair asks for a URL instead.
 CONF_APP_SLUG: Final = "app_slug"
 
+# Set on URL entries that reach the Matter Hub app on this host (2.1.0). The
+# app's slug, so setup can follow its port if the Supervisor changes it.
+CONF_ADDON: Final = "addon"
+
 CONNECTION_APP: Final = "app"
 CONNECTION_DIRECT: Final = "direct"
 
-# An example for the forms' text (the field itself starts empty). The Matter
-# Hub app isn't reachable by address (it only lets the Supervisor in); Docker
-# and standalone installs use port 8482.
+# An example for the forms' text (the field itself starts empty). Docker and
+# standalone installs use port 8482; the Matter Hub app uses 127.0.0.1 and the
+# port from its log.
 EXAMPLE_URL: Final = "http://192.168.1.20:8482"
 DEFAULT_SCAN_INTERVAL: Final = timedelta(seconds=30)
 REQUEST_TIMEOUT: Final = 15

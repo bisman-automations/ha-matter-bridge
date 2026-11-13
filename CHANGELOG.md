@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-11-13
+
+### Added
+
+- **Use the Matter Hub app on this Home Assistant.** Matter Hub's Alpha app (2.1.0-alpha.990 and newer) has a **Local API password** option that lets Home Assistant connect. Set it, restart the app, then add Matter Bridge with the URL left blank and that password. Matter Bridge finds the app and its port, fills in the user name `hamh`, and follows the port if the app is reinstalled. With more than one Matter Hub app installed, setup asks which one. Stable and Testing get the option in a later Matter Hub release.
+- **Repairing a setup from before 2.0.0** with the URL left blank reconnects it to the same Matter Hub app, keeping its devices and entities.
+
+### Changed
+
+- **The URL is only needed for Matter Hub in Docker or on another computer.** Setup, Reconfigure and the repair explain both ways, and say what to do when Matter Hub refuses the connection or no app is found.
+
 ## [2.0.2] - 2026-11-13
 
 ### Fixed
@@ -89,6 +100,7 @@ This is a major release because the Matter Hub app connection and the Pairing co
   - Diagnostics with pairing codes, fabric IDs and credentials redacted.
   - Tests, Hassfest and HACS validation, and draft releases from CHANGELOG.md.
 
+[2.1.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.0.2...v2.1.0
 [2.0.2]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v1.2.0...v2.0.0
