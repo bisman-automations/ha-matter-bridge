@@ -26,3 +26,7 @@ concurrency:
 jobs:
   test:
     uses: bisman-automations/.github/.github/workflows/ha-test.yml@main
+    with:
+      # The Matter Hub app lookup patches the Supervisor integration, which
+      # needs its own requirement (aiohasupervisor) for the installed release.
+      core-requirements: hassio
