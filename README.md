@@ -77,7 +77,7 @@ Enter the web interface address in **URL**, for example `http://192.0.2.50:8482`
 
 ### Username and password
 
-If you turned on authentication in Matter Hub's settings (or set `HAMH_HTTP_AUTH_USERNAME` / `HAMH_HTTP_AUTH_PASSWORD`), enter the same username and password. If Matter Hub has an IP allow list, add your Home Assistant host to it.
+If you turned on authentication in Matter Hub's settings (or set `HAMH_HTTP_AUTH_USERNAME` / `HAMH_HTTP_AUTH_PASSWORD`), enter the same username and password. If Matter Hub has an IP allow list, add your Home Assistant host to it. Newer Matter Hub versions only answer other computers once a web login is set, so for Matter Hub in Docker or on another computer, set a username and password in Matter Hub and enter them here.
 
 ### Setups that used the Matter Hub app connection
 
@@ -137,7 +137,7 @@ Download diagnostics from the integration page. Pairing codes, QR payloads, pass
 * **Repair says Matter Bridge needs a URL**: this setup used the old app connection. Leave the URL blank in the repair to use the Matter Hub app again (allow local access first; see above), or enter the address of a Matter Hub in Docker; the devices and entities stay.
 * **No Matter Hub app was found**: the URL was left blank, but this Home Assistant has no Matter Hub app installed (or isn't a Home Assistant OS or Supervised install). Enter the address of your Matter Hub instead.
 * **Failed to connect**: check the address opens the Matter Hub web interface in a browser on the same network as Home Assistant, on port 8482 or the port you set.
-* **Matter Hub refused this connection**: Matter Hub's IP allow list doesn't include this Home Assistant. For the app, turn on Allow local access and restart it (see above). For Docker or standalone, add this Home Assistant's address to its allow list.
+* **Matter Hub refused this connection**: Matter Hub's IP allow list doesn't include this Home Assistant. For the app, turn on Allow local access and restart it (see above). For Docker or standalone, add this Home Assistant's address to its allow list. Newer Matter Hub versions also refuse other computers while no web login is set: set a username and password in Matter Hub (or `HAMH_HTTP_AUTH_USERNAME` and `HAMH_HTTP_AUTH_PASSWORD`), then enter them in Matter Bridge with **Reconfigure**.
 * **A bridge you deleted in Matter Hub is still listed**: its service is removed after about a minute and a half, once Matter Hub has left it out of three successful updates in a row. An update that fails does not count.
 * **A bridge you added again has no entities**: they come back on the next update after the old service was removed. Give it a couple of minutes.
 * **Asked for a username and password after setup**: authentication was turned on in Matter Hub. Enter the same credentials in the repair prompt.

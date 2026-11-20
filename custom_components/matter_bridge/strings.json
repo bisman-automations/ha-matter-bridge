@@ -46,7 +46,7 @@
       "cannot_connect": "Failed to connect",
       "invalid_auth": "Invalid authentication",
       "unknown": "Unexpected error",
-      "forbidden": "Matter Hub refused this connection. For the Matter Hub app, turn on Allow local access in the app's Configuration tab (Alpha app for now) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant.",
+      "forbidden": "Matter Hub refused this connection. For the Matter Hub app, turn on Allow local access in the app's Configuration tab (Alpha app for now) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant. Newer Matter Hub versions also refuse other computers until a web login is set: set a username and password in Matter Hub and enter them here.",
       "no_app": "No Matter Hub app was found on this Home Assistant. Enter the address of your Matter Hub."
     },
     "abort": {
@@ -157,7 +157,7 @@
           "invalid_auth": "Invalid authentication",
           "unknown": "Unexpected error",
           "already_configured": "Another Matter Bridge entry already uses this address.",
-          "forbidden": "Matter Hub refused this connection. For the Matter Hub app, turn on Allow local access in the app's Configuration tab (Alpha app for now) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant.",
+          "forbidden": "Matter Hub refused this connection. For the Matter Hub app, turn on Allow local access in the app's Configuration tab (Alpha app for now) and restart the app. For Docker or another computer, check that its IP allow list includes this Home Assistant. Newer Matter Hub versions also refuse other computers until a web login is set: set a username and password in Matter Hub and enter them here.",
           "no_app": "No Matter Hub app was found on this Home Assistant. Enter the address of your Matter Hub."
         },
         "abort": {
