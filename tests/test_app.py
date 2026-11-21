@@ -231,6 +231,8 @@ async def test_reconfigure_url_entry_to_app(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_URL: "", CONF_PASSWORD: "p"}
         )
+        # The reload it schedules must run while setup is still patched.
+        await hass.async_block_till_done()
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
     assert entry.data[CONF_URL] == APP_URL

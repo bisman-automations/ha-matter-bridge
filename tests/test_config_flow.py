@@ -179,6 +179,10 @@ async def test_reconfigure(
     )
     assert result["reason"] == "reconfigure_successful"
     assert entry.data[CONF_USERNAME] == "admin"
+    # Reconfigure reloads the entry in the background. Let it finish and unload
+    # it, so its setup and poll timer don't outlive the test.
+    await hass.async_block_till_done()
+    await hass.config_entries.async_unload(entry.entry_id)
 
     result = await entry.start_reconfigure_flow(hass)
     result = await hass.config_entries.flow.async_configure(
@@ -214,3 +218,5 @@ async def test_reconfigure_converts_app_entry(
     assert "app_slug" not in entry.data
     assert entry.title == "Matter Hub (192.0.2.20)"
     assert SLUG not in entry.unique_id
+    await hass.async_block_till_done()
+    await hass.config_entries.async_unload(entry.entry_id)

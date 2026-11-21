@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2026-11-20
+
+### Fixed
+
+- **Tests are steady on the upcoming Home Assistant 2026.12.** The Reconfigure tests finished before the reload Reconfigure starts had run, which failed now and then against Home Assistant 2026.12's development build. They now wait for it. Nothing changes for you.
+
 ## [2.1.2] - 2026-11-20
 
 ### Changed
@@ -113,6 +119,7 @@ This is a major release because the Matter Hub app connection and the Pairing co
   - Diagnostics with pairing codes, fabric IDs and credentials redacted.
   - Tests, Hassfest and HACS validation, and draft releases from CHANGELOG.md.
 
+[2.1.3]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.0.2...v2.1.0
