@@ -102,13 +102,13 @@ Versions before 2.0.0 could connect through Home Assistant ingress. Those setups
 | Status | `starting`, `running`, `stopped` or `failed`, with the failure reason as an attribute |
 | Running | Switch that starts or stops the bridge |
 | Devices | Matter devices the bridge exposes |
-| Controllers | Paired controllers (fabrics), with their names as an attribute |
+| Controllers | Paired controllers (fabrics), with their names as an attribute. Unknown while the bridge is stopped, because Matter Hub only reports them for a running bridge |
 | Commissioned | On once a controller has paired |
 | Failed entities | Entities Matter Hub could not expose, with the reasons as an attribute |
 | Restart, Refresh devices, Force sync | Bridge actions from the Matter Hub UI |
 | Open pairing window | Asks Matter Hub to let another controller pair with an already commissioned bridge |
 
-Bridges you add in Matter Hub appear automatically. A bridge you delete is removed after three successful updates that leave it out (about a minute and a half). An update that cannot reach Matter Hub does not count. If you create that bridge again later, its entities come back.
+Bridges you add in Matter Hub appear automatically. A bridge renamed in Matter Hub, or a new Matter Hub version, shows on its device at the next update. A bridge you delete is removed after three successful updates that leave it out (about a minute and a half). An update that cannot reach Matter Hub does not count. If you create that bridge again later, its entities come back.
 
 To create bridges, change which entities they expose, or read a pairing code, use the Matter Hub web interface. The Matter Hub and bridge services have a **Visit** link that opens it. Home Assistant does not show the manual pairing code or the QR code: anyone who can read a state could otherwise add the bridge to their own controller.
 

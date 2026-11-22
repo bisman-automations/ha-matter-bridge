@@ -24,10 +24,11 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_URL,
     CONF_USERNAME,
+    EVENT_STATE_REPORTED,
     STATE_OFF,
     STATE_ON,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import (
@@ -590,3 +591,97 @@ async def test_upgrade_removes_pairing_entity_on_url_entry(
     await hass.async_block_till_done()
     assert ent_reg.async_get(pairing.entity_id) is None
     assert hass.states.get("sensor.living_room_status") is not None
+
+
+async def test_controllers_unknown_without_commissioning(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    health,
+    bridges,
+) -> None:
+    """A stopped bridge has no commissioning block: its controllers are unknown."""
+    await _setup_direct(hass, aioclient_mock, health, bridges)
+    assert hass.states.get("sensor.garage_controllers").state == "unknown"
+    assert hass.states.get("sensor.living_room_controllers").state == "1"
+
+
+async def test_device_details_follow_matter_hub(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    health,
+    bridges,
+) -> None:
+    """A Matter Hub update or a renamed bridge shows without a restart."""
+    entry = await _setup_direct(hass, aioclient_mock, health, bridges)
+    updates: list[dict] = []
+    hass.bus.async_listen(
+        dr.EVENT_DEVICE_REGISTRY_UPDATED, lambda event: updates.append(event.data)
+    )
+
+    # Nothing changed: nothing is written.
+    await _poll(hass)
+    assert updates == []
+
+    health["version"] = "2.1.0"
+    bridges[0]["name"] = "Family Room"
+    bridges[0]["basicInformation"]["softwareVersionString"] = "2.1.0"
+    aioclient_mock.clear_requests()
+    mock_direct(aioclient_mock, health, bridges)
+    await _poll(hass)
+
+    hub = _device(hass, entry, ("matter_bridge", entry.entry_id))
+    bridge = _device(hass, entry, ("matter_bridge", f"{entry.entry_id}_b1"))
+    garage = _device(hass, entry, ("matter_bridge", f"{entry.entry_id}_b2"))
+    assert hub.sw_version == "2.1.0"
+    assert bridge.name == "Family Room"
+    assert bridge.sw_version == "2.1.0"
+    assert garage.name == "Garage"
+    assert len(updates) == 2
+
+    # A failed poll keeps the details.
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{URL}/api/health", exc=TimeoutError)
+    await _poll(hass)
+    assert _device(hass, entry, ("matter_bridge", entry.entry_id)).sw_version == (
+        "2.1.0"
+    )
+
+
+async def test_unchanged_poll_writes_no_state(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    health,
+    bridges,
+) -> None:
+    """A poll that changes nothing writes no state; a change still shows."""
+    await _setup_direct(hass, aioclient_mock, health, bridges)
+    written: list[str] = []
+    ours = ("matter_hub", "living_room", "garage")
+
+    @callback
+    def _ours(event_data) -> bool:
+        return event_data["entity_id"].split(".")[1].startswith(ours)
+
+    @callback
+    def _record(event) -> None:
+        written.append(event.data["entity_id"])
+
+    hass.bus.async_listen(EVENT_STATE_REPORTED, _record, event_filter=_ours)
+    hass.bus.async_listen("state_changed", _record, event_filter=_ours)
+
+    await _poll(hass)
+    assert written == []
+
+    bridges[0]["deviceCount"] = 13
+    aioclient_mock.clear_requests()
+    mock_direct(aioclient_mock, health, bridges)
+    await _poll(hass)
+    assert written == ["sensor.living_room_devices"]
+    assert hass.states.get("sensor.living_room_devices").state == "13"
+
+    # Matter Hub unreachable: every entity goes unavailable.
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{URL}/api/health", exc=TimeoutError)
+    await _poll(hass)
+    assert hass.states.get("sensor.living_room_devices").state == "unavailable"
+    assert hass.states.get("sensor.matter_hub_status").state == "unavailable"

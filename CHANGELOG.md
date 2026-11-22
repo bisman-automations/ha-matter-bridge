@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.4] - 2026-11-22
+
+### Fixed
+
+- **Device details stay current.** When you rename a bridge in Matter Hub or update Matter Hub, the device's name and version change at the next update (within about 30 seconds) instead of after Home Assistant restarts.
+- **Controllers shows unknown for a stopped bridge.** Matter Hub doesn't report paired controllers while a bridge is stopped, so the sensor showed 0 even when Apple Home or another controller was paired. It now shows unknown until the bridge runs again.
+
+### Changed
+
+- **Less work every update.** Matter Bridge checks Matter Hub every 30 seconds, and most checks change nothing. Its entities now only write their state when something they show changed.
+
 ## [2.1.3] - 2026-11-20
 
 ### Fixed
@@ -119,6 +130,7 @@ This is a major release because the Matter Hub app connection and the Pairing co
   - Diagnostics with pairing codes, fabric IDs and credentials redacted.
   - Tests, Hassfest and HACS validation, and draft releases from CHANGELOG.md.
 
+[2.1.4]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.1.3...v2.1.4
 [2.1.3]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/bisman-automations/ha-matter-bridge/compare/v2.1.0...v2.1.1

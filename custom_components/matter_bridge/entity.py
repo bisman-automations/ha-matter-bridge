@@ -85,6 +85,29 @@ def hub_device_fields(
     }
 
 
+def bridge_device_fields(
+    entry: MatterBridgeConfigEntry, bridge_id: str, bridge: dict[str, Any]
+) -> dict[str, Any]:
+    """A bridge device's details, for DeviceInfo and for keeping them current."""
+    info = bridge.get("basicInformation") or {}
+    return {
+        "identifiers": {bridge_identifier(entry, bridge_id)},
+        "name": bridge.get("name") or bridge_id,
+        "manufacturer": info.get("vendorName") or MATTER_HUB_NAME,
+        "model": info.get("productName") or "Matter bridge",
+        "sw_version": info.get("softwareVersionString"),
+        "hw_version": info.get("hardwareVersionString"),
+        "serial_number": bridge_id,
+        "configuration_url": configuration_url(entry),
+        "entry_type": DeviceEntryType.SERVICE,
+    }
+
+
+# The details a poll can change. Identifiers, the entry type, the serial
+# number (the bridge id) and the Visit link (the entry's URL) can't.
+SYNCED_DEVICE_FIELDS = ("name", "manufacturer", "model", "sw_version", "hw_version")
+
+
 def hub_device_info(
     entry: MatterBridgeConfigEntry, health: dict[str, Any]
 ) -> DeviceInfo:
@@ -92,10 +115,37 @@ def hub_device_info(
     return DeviceInfo(**hub_device_fields(entry, health))
 
 
-class MatterHubEntity(CoordinatorEntity[MatterHubCoordinator]):
-    """An entity on the Matter Hub device."""
+class _QuietCoordinatorEntity(CoordinatorEntity[MatterHubCoordinator]):
+    """Writes its state after a poll only when what it shows changed.
+
+    Matter Hub is polled every 30 seconds and most polls change nothing, so
+    every entity writing an identical state each time is wasted work.
+    """
 
     _attr_has_entity_name = True
+    _written: tuple[Any, ...] | None = None
+
+    def _shown(self) -> tuple[Any, ...]:
+        return (self.available, self.state, self.extra_state_attributes)
+
+    @callback
+    def async_write_ha_state(self) -> None:
+        super().async_write_ha_state()
+        self._written = self._shown()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        if (
+            self._written is not None
+            and self._shown() == self._written
+            and self.hass.states.get(self.entity_id) is not None
+        ):
+            return
+        self.async_write_ha_state()
+
+
+class MatterHubEntity(_QuietCoordinatorEntity):
+    """An entity on the Matter Hub device."""
 
     def __init__(
         self, coordinator: MatterHubCoordinator, description: EntityDescription
@@ -108,10 +158,8 @@ class MatterHubEntity(CoordinatorEntity[MatterHubCoordinator]):
         self._attr_device_info = hub_device_info(entry, health)
 
 
-class MatterBridgeEntity(CoordinatorEntity[MatterHubCoordinator]):
+class MatterBridgeEntity(_QuietCoordinatorEntity):
     """An entity on a Matter Hub bridge device."""
-
-    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -124,19 +172,7 @@ class MatterBridgeEntity(CoordinatorEntity[MatterHubCoordinator]):
         self.bridge_id = bridge_id
         self.entity_description = description
         self._attr_unique_id = f"{entry.entry_id}_{bridge_id}_{description.key}"
-        bridge = self.bridge or {}
-        info = bridge.get("basicInformation") or {}
-        fields: dict[str, Any] = {
-            "identifiers": {bridge_identifier(entry, bridge_id)},
-            "name": bridge.get("name") or bridge_id,
-            "manufacturer": info.get("vendorName") or MATTER_HUB_NAME,
-            "model": info.get("productName") or "Matter bridge",
-            "sw_version": info.get("softwareVersionString"),
-            "hw_version": info.get("hardwareVersionString"),
-            "serial_number": bridge_id,
-            "configuration_url": configuration_url(entry),
-            "entry_type": DeviceEntryType.SERVICE,
-        }
+        fields = bridge_device_fields(entry, bridge_id, self.bridge or {})
         if coordinator.hub_device_id is not None:
             fields["via_device_id"] = coordinator.hub_device_id
         self._attr_device_info = DeviceInfo(**fields)

@@ -26,7 +26,14 @@ from .const import (
     ingress_removed_issue_id,
 )
 from .coordinator import MatterBridgeConfigEntry, MatterHubCoordinator
-from .entity import bridge_id_of, bridge_identifier, hub_device_fields, hub_identifier
+from .entity import (
+    SYNCED_DEVICE_FIELDS,
+    bridge_device_fields,
+    bridge_id_of,
+    bridge_identifier,
+    hub_device_fields,
+    hub_identifier,
+)
 
 # A bridge must be missing from this many successful polls in a row before
 # its device is removed. Matter Hub lists its bridges one by one while it
@@ -163,6 +170,11 @@ async def async_setup_entry(
             lambda: _remove_deleted_bridges(hass, entry, coordinator)
         )
     )
+    entry.async_on_unload(
+        coordinator.async_add_listener(
+            lambda: _sync_device_details(hass, entry, coordinator)
+        )
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
@@ -222,6 +234,42 @@ def _remove_deleted_bridges(
         if missing[bridge_id] >= MISSING_POLLS_BEFORE_REMOVAL:
             del missing[bridge_id]
             registry.async_remove_device(device.id)
+
+
+@callback
+def _sync_device_details(
+    hass: HomeAssistant,
+    entry: MatterBridgeConfigEntry,
+    coordinator: MatterHubCoordinator,
+) -> None:
+    """Keep device details in step with Matter Hub between restarts.
+
+    Entities only pass their device details when they are added, so a Matter
+    Hub update or a bridge renamed in Matter Hub used to show the old version
+    or name until Home Assistant restarted. Only fields that changed are
+    written, and nothing is written after a failed poll (the data is stale).
+    """
+    if not coordinator.last_update_success or not coordinator.data:
+        return
+    data = coordinator.data
+    registry = dr.async_get(hass)
+    hub = hub_identifier(entry)
+    for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
+        if hub in device.identifiers:
+            wanted = hub_device_fields(entry, data.health)
+        elif (bridge_id := bridge_id_of(entry, device)) is not None and (
+            bridge := data.bridges.get(bridge_id)
+        ) is not None:
+            wanted = bridge_device_fields(entry, bridge_id, bridge)
+        else:
+            continue
+        changes = {
+            key: wanted[key]
+            for key in SYNCED_DEVICE_FIELDS
+            if key in wanted and getattr(device, key) != wanted[key]
+        }
+        if changes:
+            registry.async_update_device(device.id, **changes)
 
 
 async def async_remove_config_entry_device(

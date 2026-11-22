@@ -92,7 +92,13 @@ BRIDGE_SENSORS: tuple[BridgeSensorDescription, ...] = (
         key="fabrics",
         translation_key="fabrics",
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda b: len(_commissioning(b).get("fabrics") or []),
+        # No commissioning block (a stopped bridge) means the controllers
+        # aren't known, not that there are none.
+        value_fn=lambda b: (
+            len(b["commissioning"].get("fabrics") or [])
+            if b.get("commissioning")
+            else None
+        ),
         attrs_fn=lambda b: {
             "controllers": [
                 f.get("label") or f"Vendor {f.get('rootVendorId')}"
